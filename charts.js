@@ -1,7 +1,7 @@
 /*************************************************
  * charts.js
- * Наукова візуалізація результатів симуляції
- * Порівняння: теорія ↔ експеримент
+ * Візуалізація результатів симуляції
+ * Працює і з генотипами, і з фенотипами
  *************************************************/
 
 /* =================================================
@@ -13,15 +13,12 @@ const COLORS = {
   experiment: "#c44536"
 };
 
-const FONT = "12px Arial";
+const FONT = "12px system-ui";
 
 /* =================================================
-   ОЧИЩЕННЯ
+   ОЧИЩЕННЯ (викликається з app.js)
    ================================================= */
 
-/**
- * Очищає контейнер перед повторним рендером
- */
 export function clearCharts(container) {
   container.innerHTML = "";
 }
@@ -37,7 +34,7 @@ export function renderComparisonTable(container, theory, experiment, total) {
   table.innerHTML = `
     <thead>
       <tr>
-        <th>Генотип</th>
+        <th>Категорія</th>
         <th>Теорія (%)</th>
         <th>Експеримент (%)</th>
       </tr>
@@ -47,22 +44,21 @@ export function renderComparisonTable(container, theory, experiment, total) {
 
   const tbody = table.querySelector("tbody");
 
-  // стабільний порядок генотипів
-  const genotypes = Object.keys(theory).sort();
+  const keys = Object.keys(theory).sort((a, b) =>
+    a.localeCompare(b, "uk")
+  );
 
-  genotypes.forEach(genotype => {
-    const tr = document.createElement("tr");
-
-    const theoryPct = (theory[genotype] * 100).toFixed(1);
+  keys.forEach(key => {
+    const theoryPct = (theory[key] * 100).toFixed(1);
     const expPct =
-      ((experiment[genotype] || 0) / total * 100).toFixed(1);
+      ((experiment[key] || 0) / total * 100).toFixed(1);
 
+    const tr = document.createElement("tr");
     tr.innerHTML = `
-      <td>${genotype}</td>
+      <td class="label-cell">${key}</td>
       <td>${theoryPct}</td>
       <td>${expPct}</td>
     `;
-
     tbody.appendChild(tr);
   });
 
@@ -73,47 +69,38 @@ export function renderComparisonTable(container, theory, experiment, total) {
    2. СТОВПЧИКОВА ДІАГРАМА
    ================================================= */
 
-/**
- * Малює порівняльну стовпчикову діаграму
- * Вісь Y зафіксована: 0–100% (усвідомлене методичне рішення)
- */
 export function renderBarChart(container, theory, experiment, total) {
-  // очищення контейнера від попередніх canvas
-  const oldCanvas = container.querySelector("canvas");
-  if (oldCanvas) oldCanvas.remove();
-
   const canvas = document.createElement("canvas");
-  canvas.width = 700;
+
+  const keys = Object.keys(theory);
+  canvas.width = Math.max(700, keys.length * 140);
   canvas.height = 420;
-  canvas.setAttribute(
-    "aria-label",
-    "Порівняння теоретичних та експериментальних частот генотипів"
-  );
 
   container.appendChild(canvas);
 
   const ctx = canvas.getContext("2d");
   ctx.font = FONT;
 
-  const padding = 70;
-  const chartWidth = canvas.width - padding * 2;
+  const padding = 80;
   const chartHeight = canvas.height - padding * 2;
+  const chartWidth = canvas.width - padding * 2;
 
-  const genotypes = Object.keys(theory).sort();
+  const sortedKeys = keys.sort((a, b) =>
+    a.localeCompare(b, "uk")
+  );
 
-  const groupWidth = chartWidth / genotypes.length;
+  const groupWidth = chartWidth / sortedKeys.length;
   const barWidth = groupWidth / 3;
 
   drawAxes(ctx, canvas, padding, chartHeight);
 
-  genotypes.forEach((g, i) => {
-    const theoryVal = theory[g] * 100;
+  sortedKeys.forEach((key, i) => {
+    const theoryVal = theory[key] * 100;
     const expVal =
-      ((experiment[g] || 0) / total) * 100;
+      ((experiment[key] || 0) / total) * 100;
 
     const xBase = padding + i * groupWidth;
 
-    // теорія
     drawBar(
       ctx,
       xBase + barWidth * 0.5,
@@ -124,7 +111,6 @@ export function renderBarChart(container, theory, experiment, total) {
       COLORS.theory
     );
 
-    // експеримент
     drawBar(
       ctx,
       xBase + barWidth * 1.5,
@@ -135,17 +121,16 @@ export function renderBarChart(container, theory, experiment, total) {
       COLORS.experiment
     );
 
-    // підпис генотипу
-    ctx.fillStyle = "#000";
-    ctx.textAlign = "center";
-    ctx.fillText(
-      g,
+    drawLabel(
+      ctx,
+      key,
       xBase + groupWidth / 2,
-      canvas.height - padding + 18
+      canvas.height - padding + 22,
+      groupWidth
     );
   });
 
-  drawLegend(ctx, canvas.width - 200, padding);
+  drawLegend(ctx, canvas.width - 220, padding);
 }
 
 /* =================================================
@@ -162,19 +147,17 @@ function drawAxes(ctx, canvas, padding, chartHeight) {
 
   ctx.textAlign = "right";
 
-  // фіксована шкала 0–100%
   [0, 25, 50, 75, 100].forEach(v => {
     const y =
       canvas.height - padding - (v / 100) * chartHeight;
     ctx.fillText(v + "%", padding - 8, y + 4);
   });
 
-  // підпис осі Y
   ctx.save();
   ctx.translate(25, canvas.height / 2);
   ctx.rotate(-Math.PI / 2);
   ctx.textAlign = "center";
-  ctx.fillText("Частота генотипів (%)", 0, 0);
+  ctx.fillText("Частота (%)", 0, 0);
   ctx.restore();
 }
 
@@ -196,5 +179,27 @@ function drawLegend(ctx, x, y) {
   ctx.fillRect(x, y + 24, 14, 14);
   ctx.fillStyle = "#000";
   ctx.fillText("Експеримент", x + 22, y + 36);
+}
+
+function drawLabel(ctx, text, x, y, maxWidth) {
+  ctx.fillStyle = "#000";
+  ctx.textAlign = "center";
+
+  const words = text.split(" ");
+  let line = "";
+  let offsetY = 0;
+
+  words.forEach(word => {
+    const test = line + word + " ";
+    if (ctx.measureText(test).width > maxWidth) {
+      ctx.fillText(line, x, y + offsetY);
+      line = word + " ";
+      offsetY += 14;
+    } else {
+      line = test;
+    }
+  });
+
+  ctx.fillText(line, x, y + offsetY);
 }
 
