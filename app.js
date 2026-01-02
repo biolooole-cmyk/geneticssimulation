@@ -1,12 +1,7 @@
 /*************************************************
  * app.js
- * Керування генетичною симуляцією
- * Ген → алелі → генотип → фенотип → візуалізація
- *
- * ВАЖЛИВО:
- * - app.js НЕ визначає домінування
- * - app.js НЕ нормалізує генотипи
- * - уся біологічна логіка — в genetics.js
+ * Генетична симуляція (9 клас)
+ * Контролер навчальної моделі
  *************************************************/
 
 import {
@@ -22,92 +17,33 @@ import {
   renderBarChart
 } from "./charts.js";
 
-/* =================================================
-   1. DOM
-   ================================================= */
+/* ===============================================
+   DOM
+   =============================================== */
 
 const modelRadios = document.querySelectorAll('input[name="model"]');
-
-// Ген 1
-const gene1 = {
-  trait: document.getElementById("gene1-trait"),
-  dom: document.getElementById("gene1-dom-symbol"),
-  rec: document.getElementById("gene1-rec-symbol"),
-  domDesc: document.getElementById("gene1-dom-desc"),
-  recDesc: document.getElementById("gene1-rec-desc")
-};
-
-// Ген 2
-const gene2Block = document.getElementById("gene2-block");
-const gene2 = {
-  trait: document.getElementById("gene2-trait"),
-  dom: document.getElementById("gene2-dom-symbol"),
-  rec: document.getElementById("gene2-rec-symbol"),
-  domDesc: document.getElementById("gene2-dom-desc"),
-  recDesc: document.getElementById("gene2-rec-desc")
-};
-
-// Батьки
-const parents = {
-  p1: {
-    g1: [
-      document.getElementById("p1-g1-a1"),
-      document.getElementById("p1-g1-a2")
-    ],
-    g2: [
-      document.getElementById("p1-g2-a1"),
-      document.getElementById("p1-g2-a2")
-    ]
-  },
-  p2: {
-    g1: [
-      document.getElementById("p2-g1-a1"),
-      document.getElementById("p2-g1-a2")
-    ],
-    g2: [
-      document.getElementById("p2-g2-a1"),
-      document.getElementById("p2-g2-a2")
-    ]
-  }
-};
-
-const offspringInput = document.getElementById("offspring");
+const trait2Block = document.getElementById("trait2");
 const runBtn = document.getElementById("run");
 const output = document.getElementById("output");
+const offspringInput = document.getElementById("offspring");
 
-/* =================================================
-   2. INIT
-   ================================================= */
+/* ===============================================
+   INIT
+   =============================================== */
 
 init();
 
 function init() {
-  attachEvents();
-  updateModel();
-}
-
-/* =================================================
-   3. EVENTS
-   ================================================= */
-
-function attachEvents() {
   modelRadios.forEach(r =>
     r.addEventListener("change", updateModel)
   );
-
-  [
-    gene1.dom, gene1.rec,
-    gene2.dom, gene2.rec
-  ].forEach(input =>
-    input.addEventListener("input", updateParentSelectors)
-  );
-
   runBtn.addEventListener("click", runSimulation);
+  updateModel();
 }
 
-/* =================================================
-   4. MODEL
-   ================================================= */
+/* ===============================================
+   MODE
+   =============================================== */
 
 function getMode() {
   return [...modelRadios].find(r => r.checked).value;
@@ -115,147 +51,99 @@ function getMode() {
 
 function updateModel() {
   const mode = getMode();
-  gene2Block.style.display = mode === "di" ? "block" : "none";
-  clearParentSelectors();
-  updateParentSelectors();
+  trait2Block.style.display = mode === "di" ? "block" : "none";
 }
 
-/* =================================================
-   5. VALIDATION
-   ================================================= */
+/* ===============================================
+   DATA COLLECTION
+   =============================================== */
 
-function validateGene(gene, index) {
-  if (!gene.trait.value.trim()) {
-    throw new Error(`Не вказана ознака для гена ${index}`);
+function getChecked(name, label) {
+  const el = document.querySelector(`input[name="${name}"]:checked`);
+  if (!el) {
+    throw new Error(`Оберіть ${label}`);
+  }
+  return el.value;
+}
+
+function collectParentGenotypes() {
+  const mode = getMode();
+
+  const p1g1 = getChecked("p1-g1", "ознаку 1 для Батька 1");
+  const p2g1 = getChecked("p2-g1", "ознаку 1 для Батька 2");
+
+  let p1 = p1g1;
+  let p2 = p2g1;
+
+  if (mode === "di") {
+    const p1g2 = getChecked("p1-g2", "ознаку 2 для Батька 1");
+    const p2g2 = getChecked("p2-g2", "ознаку 2 для Батька 2");
+
+    // Локусно (методично правильно)
+    p1 = `${p1g1}${p1g2}`;
+    p2 = `${p2g1}${p2g2}`;
   }
 
-  if (!gene.dom.value.trim() || !gene.rec.value.trim()) {
-    throw new Error(`Не вказані алелі для гена ${index}`);
-  }
-
-  if (gene.dom.value === gene.rec.value) {
-    throw new Error(`Алелі гена ${index} мають бути різними`);
-  }
-
-  return {
-    trait: gene.trait.value.trim(),
-    dom: gene.dom.value.trim(),
-    rec: gene.rec.value.trim(),
-    domDesc: gene.domDesc.value.trim(),
-    recDesc: gene.recDesc.value.trim()
-  };
+  return { p1, p2 };
 }
 
-/* =================================================
-   6. PARENTS
-   ================================================= */
-
-function clearParentSelectors() {
-  Object.values(parents).forEach(parent =>
-    Object.values(parent).forEach(gene =>
-      gene.forEach(sel => (sel.innerHTML = ""))
-    )
-  );
-}
-
-function fillSelectors(selectors, alleles) {
-  selectors.forEach(sel => {
-    sel.innerHTML = "";
-    alleles.forEach(a => {
-      const opt = document.createElement("option");
-      opt.value = a;
-      opt.textContent = a;
-      sel.appendChild(opt);
-    });
-  });
-}
-
-function updateParentSelectors() {
-  try {
-    const g1 = validateGene(gene1, 1);
-    fillSelectors(
-      [...parents.p1.g1, ...parents.p2.g1],
-      [g1.dom, g1.rec]
-    );
-
-    if (getMode() === "di") {
-      const g2 = validateGene(gene2, 2);
-      fillSelectors(
-        [...parents.p1.g2, ...parents.p2.g2],
-        [g2.dom, g2.rec]
-      );
-    }
-  } catch {
-    // користувач ще вводить дані
-  }
-}
-
-/**
- * ЗБІР ГЕНОТИПУ:
- * app.js НЕ нормалізує і НЕ визначає домінування
- */
-function collectGenotype(parentKey, genes) {
-  let genotype = "";
-
-  genes.forEach(gene => {
-    const [a1, a2] =
-      parents[parentKey][gene.key].map(sel => sel.value);
-
-    if (!a1 || !a2) {
-      throw new Error("Не всі алелі обрані у батьків");
-    }
-
-    genotype += a1 + a2;
-  });
-
-  return genotype;
-}
-
-/* =================================================
-   7. SIMULATION
-   ================================================= */
+/* ===============================================
+   SIMULATION
+   =============================================== */
 
 function runSimulation() {
   try {
-    const mode = getMode();
+    clearCharts(output);
 
-    const g1 = validateGene(gene1, 1);
-    const geneDefs = [{ ...g1 }];
-    const genes = [{ key: "g1" }];
-
-    if (mode === "di") {
-      const g2 = validateGene(gene2, 2);
-      geneDefs.push({ ...g2 });
-      genes.push({ key: "g2" });
-    }
-
-    const p1Genotype = collectGenotype("p1", genes);
-    const p2Genotype = collectGenotype("p2", genes);
+    const { p1, p2 } = collectParentGenotypes();
 
     const n = parseInt(offspringInput.value, 10);
-    if (!Number.isInteger(n) || n < 1) {
-      throw new Error("Некоректна кількість нащадків");
+    if (!Number.isInteger(n) || n < 20) {
+      throw new Error("Кількість нащадків має бути не менше 20");
+    }
+
+    const mode = getMode();
+
+    // Опис генів (стабільні фенотипні назви)
+    const geneDefs = [
+      {
+        trait: "Колір насіння",
+        dom: "A",
+        rec: "a",
+        domDesc: "жовте",
+        recDesc: "зелене"
+      }
+    ];
+
+    if (mode === "di") {
+      geneDefs.push({
+        trait: "Форма насіння",
+        dom: "B",
+        rec: "b",
+        domDesc: "гладке",
+        recDesc: "зморшкувате"
+      });
     }
 
     const theoryGenotypes =
-      getTheoreticalDistribution(p1Genotype, p2Genotype, mode);
+      getTheoreticalDistribution(p1, p2, mode);
 
-    const expGenotypes =
-      simulate(p1Genotype, p2Genotype, n, mode);
+    const experimentalGenotypes =
+      simulate(p1, p2, n, mode);
 
     const theoryPhenotypes =
       aggregatePhenotypes(theoryGenotypes, geneDefs);
 
-    const expPhenotypes =
-      aggregatePhenotypes(expGenotypes, geneDefs);
+    const experimentalPhenotypes =
+      aggregatePhenotypes(experimentalGenotypes, geneDefs);
 
     renderResults(
-      p1Genotype,
-      p2Genotype,
+      p1,
+      p2,
       theoryGenotypes,
-      expGenotypes,
+      experimentalGenotypes,
       theoryPhenotypes,
-      expPhenotypes,
+      experimentalPhenotypes,
       n
     );
   } catch (err) {
@@ -263,9 +151,9 @@ function runSimulation() {
   }
 }
 
-/* =================================================
-   8. OUTPUT
-   ================================================= */
+/* ===============================================
+   OUTPUT
+   =============================================== */
 
 function renderResults(
   p1,
@@ -274,10 +162,8 @@ function renderResults(
   expGen,
   theoryPheno,
   expPheno,
-  n
+  total
 ) {
-  clearCharts(output);
-
   const info = document.createElement("div");
   info.innerHTML = `
     <h3>Генотипи батьків</h3>
@@ -286,20 +172,18 @@ function renderResults(
   `;
   output.appendChild(info);
 
-  const genTitle = document.createElement("h3");
-  genTitle.textContent = "Генотипи нащадків";
-  output.appendChild(genTitle);
+  output.appendChild(document.createElement("h3"))
+    .textContent = "Генотипи нащадків";
 
-  renderComparisonTable(output, theoryGen, expGen, n);
-  renderBarChart(output, theoryGen, expGen, n);
+  renderComparisonTable(output, theoryGen, expGen, total);
+  renderBarChart(output, theoryGen, expGen, total);
 
   output.appendChild(document.createElement("hr"));
 
-  const phTitle = document.createElement("h3");
-  phTitle.textContent = "Фенотипи нащадків";
-  output.appendChild(phTitle);
+  output.appendChild(document.createElement("h3"))
+    .textContent = "Фенотипи нащадків";
 
-  renderComparisonTable(output, theoryPheno, expPheno, n);
-  renderBarChart(output, theoryPheno, expPheno, n);
+  renderComparisonTable(output, theoryPheno, expPheno, total);
+  renderBarChart(output, theoryPheno, expPheno, total);
 }
 
