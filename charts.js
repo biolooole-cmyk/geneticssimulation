@@ -1,16 +1,18 @@
 /*************************************************
  * charts.js
  * Візуалізація результатів генетичної симуляції
- * (9 клас, візуальні фенотипи)
+ * 9 клас — стабільна версія для GitHub Pages
  *************************************************/
-
-import Chart from "https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.esm.js";
 
 /* ===============================================
    СТАН
    =============================================== */
 
 let charts = [];
+
+/* ===============================================
+   ОЧИЩЕННЯ
+   =============================================== */
 
 export function clearCharts(container) {
   charts.forEach(c => c.destroy());
@@ -19,46 +21,44 @@ export function clearCharts(container) {
 }
 
 /* ===============================================
-   ВІЗУАЛЬНІ ФЕНОТИПИ (СТАБІЛЬНО)
+   ВІЗУАЛЬНІ ФЕНОТИПИ
    =============================================== */
 
 /*
-  Ключі приходять з aggregatePhenotypes:
-  приклади:
-  - "жовте"
-  - "зелене"
-  - "гладке"
-  - "зморшкувате"
-  - "жовте + гладке"
+  Ключі фенотипів приходять з aggregatePhenotypes(),
+  наприклад:
+  "жовте"
+  "зелене"
+  "гладке"
+  "зморшкувате"
+  "жовте + гладке"
 */
 
 function phenotypeIcon(key) {
+  let icons = "";
+
   // Колір
   if (key.includes("жовте")) {
-    return `<span class="seed yellow"></span>`;
+    icons += `<span class="seed yellow"></span>`;
   }
   if (key.includes("зелене")) {
-    return `<span class="seed green"></span>`;
+    icons += `<span class="seed green"></span>`;
   }
 
   // Форма
   if (key.includes("гладке")) {
-    return `<span class="shape round"></span>`;
+    icons += `<span class="shape round"></span>`;
   }
   if (key.includes("зморшкувате")) {
-    return `<span class="shape wrinkled"></span>`;
-  }
-
-  // Комбінований фенотип
-  if (key.includes("+")) {
-    return `
-      <span class="seed ${key.includes("жовте") ? "yellow" : "green"}"></span>
-      <span class="shape ${key.includes("гладке") ? "round" : "wrinkled"}"></span>
-    `;
+    icons += `<span class="shape wrinkled"></span>`;
   }
 
   // fallback
-  return `<span class="seed hetero"></span>`;
+  if (!icons) {
+    icons = `<span class="seed hetero"></span>`;
+  }
+
+  return icons;
 }
 
 /* ===============================================
@@ -117,6 +117,11 @@ export function renderBarChart(
   experiment,
   total
 ) {
+  if (typeof Chart === "undefined") {
+    console.error("Chart.js не підключений");
+    return;
+  }
+
   const canvas = document.createElement("canvas");
   container.appendChild(canvas);
 
