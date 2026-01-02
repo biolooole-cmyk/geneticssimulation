@@ -1,164 +1,162 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <title>
-    Генетична симуляція: моногібридне та дигібридне схрещування
-  </title>
-
-  <meta name="description"
-        content="Навчальна наукова симуляція моногібридного та дигібридного схрещування за законами Менделя." />
-
-  <link rel="stylesheet" href="css/style.css" />
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Генетична симуляція спадковості</title>
+  <link rel="stylesheet" href="css/style.css">
 </head>
 
 <body>
 
-  <!-- ================= HEADER ================= -->
-  <header class="app-header">
-    <h1>Генетична симуляція схрещувань</h1>
-    <p class="subtitle">
-      Моногібридне та дигібридне схрещування • теорія і експеримент
-    </p>
-  </header>
+<header class="app-header">
+  <h1>Генетична симуляція спадковості</h1>
+  <p class="subtitle">
+    Моделювання спадковості за законами Менделя
+  </p>
+</header>
 
-  <!-- ================= MAIN ================= -->
-  <main class="app-container">
+<main class="app-container">
 
-    <!-- ===== 1. ВИБІР ТИПУ СХРЕЩУВАННЯ ===== -->
-    <section class="panel">
-      <h2>1. Тип схрещування</h2>
+  <!-- ===== 1. ТИП МОДЕЛІ ===== -->
+  <section class="panel">
+    <h2>1. Тип моделі</h2>
 
-      <label for="mode">Оберіть модель:</label>
-      <select id="mode" aria-label="Тип схрещування">
-        <option value="mono">Моногібридне (1 ген)</option>
-        <option value="di">Дигібридне (2 гени)</option>
-      </select>
+    <label>
+      <input type="radio" name="model" value="mono" checked>
+      Моногібридне схрещування
+    </label>
+    <label>
+      <input type="radio" name="model" value="di">
+      Дигібридне схрещування
+    </label>
+  </section>
 
-      <p class="hint">
-        Моногібридне схрещування — один спадковий ознака (A/a).<br>
-        Дигібридне схрещування — дві незалежні ознаки (A/a і B/b).
-      </p>
-    </section>
+  <!-- ===== 2. ОПИС ГЕНА ===== -->
+  <section class="panel">
+    <h2>2. Ген і алелі</h2>
 
-    <!-- ===== 2. ГЕНОТИПИ БАТЬКІВ ===== -->
-    <section class="panel">
-      <h2>2. Генотипи батьків</h2>
+    <!-- ГЕН 1 -->
+    <div class="gene-block" data-gene="0">
+      <h3>Ген 1</h3>
 
-      <div class="parents-grid">
-
-        <div class="parent">
-          <h3>Батьківська особина 1</h3>
-          <select id="parent1" aria-label="Генотип першого з батьків">
-            <!-- Заповнюється з JavaScript -->
-          </select>
-        </div>
-
-        <div class="parent">
-          <h3>Батьківська особина 2</h3>
-          <select id="parent2" aria-label="Генотип другого з батьків">
-            <!-- Заповнюється з JavaScript -->
-          </select>
-        </div>
-
-      </div>
-
-      <p class="hint">
-        Набір можливих генотипів залежить від обраного типу схрещування.
-      </p>
-    </section>
-
-    <!-- ===== 3. ПАРАМЕТРИ ЕКСПЕРИМЕНТУ ===== -->
-    <section class="panel">
-      <h2>3. Параметри експерименту</h2>
-
-      <label for="offspring">
-        Кількість нащадків (розмір вибірки):
+      <label>
+        Ознака:
+        <input type="text" id="gene1-trait" placeholder="Колір насіння">
       </label>
-      <input
-        type="number"
-        id="offspring"
-        min="1"
-        max="5000"
-        step="1"
-        value="100"
-      />
 
-      <p class="hint">
-        Невелика вибірка призводить до значних випадкових відхилень.<br>
-        Велика вибірка наближає результат до теоретичного очікування.
-      </p>
-    </section>
-
-    <!-- ===== 4. КЕРУВАННЯ ===== -->
-    <section class="panel controls">
-      <button id="run" class="primary" type="button">
-        Запустити симуляцію
-      </button>
-
-      <button id="reset" class="secondary" type="button">
-        Скинути результати
-      </button>
-    </section>
-
-    <!-- ===== 5. РЕЗУЛЬТАТИ ===== -->
-    <section class="panel results">
-      <h2>4. Результати</h2>
-
-      <div class="results-layout">
-
-        <div class="result-block">
-          <h3>Теоретичне очікування</h3>
-          <div id="theory-output" class="output-box">
-            <p class="placeholder">
-              Запустіть симуляцію, щоб побачити теоретичні ймовірності.
-            </p>
-          </div>
+      <div class="alleles">
+        <div>
+          <strong>Домінантний алель</strong><br>
+          <input type="text" id="gene1-dom-symbol" maxlength="1" placeholder="A">
+          <input type="text" id="gene1-dom-desc" placeholder="Жовте">
         </div>
 
-        <div class="result-block">
-          <h3>Результат експерименту</h3>
-          <div id="experiment-output" class="output-box">
-            <p class="placeholder">
-              Тут з’являться результати випадкового моделювання.
-            </p>
-          </div>
+        <div>
+          <strong>Рецесивний алель</strong><br>
+          <input type="text" id="gene1-rec-symbol" maxlength="1" placeholder="a">
+          <input type="text" id="gene1-rec-desc" placeholder="Зелене">
         </div>
-
       </div>
-    </section>
+    </div>
 
-    <!-- ===== 6. ВІЗУАЛІЗАЦІЯ ===== -->
-    <section class="panel">
-      <h2>5. Візуалізація розподілу</h2>
+    <!-- ГЕН 2 -->
+    <div class="gene-block" data-gene="1" id="gene2-block">
+      <h3>Ген 2</h3>
 
-      <canvas
-        id="chart"
-        width="700"
-        height="400"
-        role="img"
-        aria-label="Стовпчикова діаграма розподілу генотипів">
-      </canvas>
+      <label>
+        Ознака:
+        <input type="text" id="gene2-trait">
+      </label>
 
-      <p class="hint">
-        Діаграма відображає частоти генотипів серед нащадків.
+      <div class="alleles">
+        <div>
+          <strong>Домінантний алель</strong><br>
+          <input type="text" id="gene2-dom-symbol" maxlength="1">
+          <input type="text" id="gene2-dom-desc">
+        </div>
+
+        <div>
+          <strong>Рецесивний алель</strong><br>
+          <input type="text" id="gene2-rec-symbol" maxlength="1">
+          <input type="text" id="gene2-rec-desc">
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 3. ГЕНОТИПИ БАТЬКІВ ===== -->
+  <section class="panel">
+    <h2>3. Генотипи батьків</h2>
+
+    <div class="parents-grid">
+
+      <div class="parent" data-parent="1">
+        <h3>Батько 1</h3>
+
+        <div class="genotype-row">
+          Ген 1:
+          <select id="p1-g1-a1"></select>
+          <select id="p1-g1-a2"></select>
+        </div>
+
+        <div class="genotype-row" id="p1-gene2">
+          Ген 2:
+          <select id="p1-g2-a1"></select>
+          <select id="p1-g2-a2"></select>
+        </div>
+      </div>
+
+      <div class="parent" data-parent="2">
+        <h3>Батько 2</h3>
+
+        <div class="genotype-row">
+          Ген 1:
+          <select id="p2-g1-a1"></select>
+          <select id="p2-g1-a2"></select>
+        </div>
+
+        <div class="genotype-row" id="p2-gene2">
+          Ген 2:
+          <select id="p2-g2-a1"></select>
+          <select id="p2-g2-a2"></select>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ===== 4. ПАРАМЕТРИ ===== -->
+  <section class="panel">
+    <h2>4. Параметри моделювання</h2>
+
+    <label>
+      Кількість нащадків:
+      <input type="number" id="offspring" min="1" max="5000" value="100">
+    </label>
+  </section>
+
+  <!-- ===== 5. КЕРУВАННЯ ===== -->
+  <section class="panel controls">
+    <button id="run" class="primary">Запустити симуляцію</button>
+  </section>
+
+  <!-- ===== 6. РЕЗУЛЬТАТ ===== -->
+  <section class="panel">
+    <h2>5. Результати</h2>
+    <div id="output">
+      <p class="placeholder">
+        Результати з’являться після запуску симуляції.
       </p>
-    </section>
+    </div>
+  </section>
 
-  </main>
+</main>
 
-  <!-- ================= FOOTER ================= -->
-  <footer class="app-footer">
-    <p>
-      Навчальна генетична симуляція • Закони Менделя •
-      Використовується з освітньою метою
-    </p>
-  </footer>
+<footer class="app-footer">
+  <p>Навчальна симуляція з генетики • Шкільний рівень</p>
+</footer>
 
-  <!-- ================= JS ================= -->
-  <script type="module" src="js/app.js"></script>
-
+<script type="module" src="js/app.js"></script>
 </body>
 </html>
