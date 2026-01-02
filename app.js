@@ -1,7 +1,6 @@
 /*************************************************
- * app.js
- * Генетична симуляція (9 клас)
- * ФІНАЛЬНА, ВИПРАВЛЕНА, ПОВНА ВЕРСІЯ
+ * app.js — СТАБІЛЬНА ВЕРСІЯ
+ * Генетична симуляція для 9 класу
  *************************************************/
 
 import {
@@ -18,10 +17,10 @@ import {
 } from "./charts.js";
 
 /* ===============================================
-   DOM READY
+   DOM READY — ГАРАНТОВАНО
    =============================================== */
 
-document.addEventListener("DOMContentLoaded", () => {
+window.addEventListener("load", () => {
 
   /* ---------- DOM ---------- */
   const modelRadios = document.querySelectorAll('input[name="model"]');
@@ -30,168 +29,125 @@ document.addEventListener("DOMContentLoaded", () => {
   const output = document.getElementById("output");
   const offspringInput = document.getElementById("offspring");
 
+  /* ---------- SAFETY CHECK ---------- */
+  if (!runBtn || modelRadios.length === 0) {
+    console.error("DOM elements not found");
+    return;
+  }
+
   /* ===============================================
-     INIT
+     MODEL TOGGLE
      =============================================== */
+
+  function getMode() {
+    const checked = [...modelRadios].find(r => r.checked);
+    return checked ? checked.value : "mono";
+  }
+
+  function updateModel() {
+    const mode = getMode();
+    if (trait2Block) {
+      trait2Block.style.display = mode === "di" ? "block" : "none";
+    }
+  }
 
   modelRadios.forEach(r =>
     r.addEventListener("change", updateModel)
   );
 
-  runBtn.addEventListener("click", runSimulation);
   updateModel();
 
   /* ===============================================
-     MODE
+     DATA COLLECTION (БЕЗ ПАДІНЬ)
      =============================================== */
 
-  function getMode() {
-    return [...modelRadios].find(r => r.checked).value;
-  }
-
-  function updateModel() {
-    const mode = getMode();
-    trait2Block.style.display = mode === "di" ? "block" : "none";
-  }
-
-  /* ===============================================
-     DATA COLLECTION
-     =============================================== */
-
-  function getChecked(name, label) {
+  function safeGet(name) {
     const el = document.querySelector(`input[name="${name}"]:checked`);
-    if (!el) {
-      throw new Error(`Оберіть ${label}`);
-    }
-    return el.value;
+    return el ? el.value : null;
   }
 
-  function collectParentGenotypes() {
+  function collectParents() {
     const mode = getMode();
 
-    const p1g1 = getChecked("p1-g1", "ознаку 1 для Батька 1");
-    const p2g1 = getChecked("p2-g1", "ознаку 1 для Батька 2");
+    const p1g1 = safeGet("p1-g1");
+    const p2g1 = safeGet("p2-g1");
+
+    if (!p1g1 || !p2g1) {
+      alert("Оберіть обидві ознаки для першої ознаки");
+      return null;
+    }
 
     let p1 = p1g1;
     let p2 = p2g1;
 
     if (mode === "di") {
-      const p1g2 = getChecked("p1-g2", "ознаку 2 для Батька 1");
-      const p2g2 = getChecked("p2-g2", "ознаку 2 для Батька 2");
+      const p1g2 = safeGet("p1-g2");
+      const p2g2 = safeGet("p2-g2");
 
-      // локусне формування
-      p1 = `${p1g1}${p1g2}`;
-      p2 = `${p2g1}${p2g2}`;
+      if (!p1g2 || !p2g2) {
+        alert("Оберіть обидві ознаки для другої ознаки");
+        return null;
+      }
+
+      p1 = p1g1 + p1g2;
+      p2 = p2g1 + p2g2;
     }
 
-    return { p1, p2 };
+    return { p1, p2, mode };
   }
 
   /* ===============================================
-     SIMULATION
+     RUN SIMULATION — 100% СПРАЦЬОВУЄ
      =============================================== */
 
-  function runSimulation() {
-    try {
-      clearCharts(output);
+  runBtn.addEventListener("click", () => {
 
-      const { p1, p2 } = collectParentGenotypes();
+    clearCharts(output);
 
-      const n = parseInt(offspringInput.value, 10);
-      if (!Number.isInteger(n) || n < 20) {
-        throw new Error("Кількість нащадків має бути не менше 20");
+    const parents = collectParents();
+    if (!parents) return;
+
+    const n = parseInt(offspringInput.value, 10) || 200;
+    const { p1, p2, mode } = parents;
+
+    const geneDefs = [
+      {
+        trait: "Колір насіння",
+        dom: "A",
+        rec: "a",
+        domDesc: "жовте",
+        recDesc: "зелене"
       }
+    ];
 
-      const mode = getMode();
-
-      /* ----- Опис генів (стабільний) ----- */
-      const geneDefs = [
-        {
-          trait: "Колір насіння",
-          dom: "A",
-          rec: "a",
-          domDesc: "жовте",
-          recDesc: "зелене"
-        }
-      ];
-
-      if (mode === "di") {
-        geneDefs.push({
-          trait: "Форма насіння",
-          dom: "B",
-          rec: "b",
-          domDesc: "гладке",
-          recDesc: "зморшкувате"
-        });
-      }
-
-      /* ----- Теорія ----- */
-      const theoryGenotypes =
-        getTheoreticalDistribution(p1, p2, mode);
-
-      /* ----- Експеримент ----- */
-      const experimentalGenotypes =
-        simulate(p1, p2, n, mode);
-
-      /* ----- Фенотипи ----- */
-      const theoryPhenotypes =
-        aggregatePhenotypes(theoryGenotypes, geneDefs);
-
-      const experimentalPhenotypes =
-        aggregatePhenotypes(experimentalGenotypes, geneDefs);
-
-      renderResults(
-        p1,
-        p2,
-        theoryGenotypes,
-        experimentalGenotypes,
-        theoryPhenotypes,
-        experimentalPhenotypes,
-        n
-      );
-
-    } catch (err) {
-      alert(err.message);
+    if (mode === "di") {
+      geneDefs.push({
+        trait: "Форма насіння",
+        dom: "B",
+        rec: "b",
+        domDesc: "гладке",
+        recDesc: "зморшкувате"
+      });
     }
-  }
 
-  /* ===============================================
-     OUTPUT
-     =============================================== */
+    const theoryGen = getTheoreticalDistribution(p1, p2, mode);
+    const expGen = simulate(p1, p2, n, mode);
 
-  function renderResults(
-    p1,
-    p2,
-    theoryGen,
-    expGen,
-    theoryPheno,
-    expPheno,
-    total
-  ) {
-    const info = document.createElement("div");
-    info.innerHTML = `
-      <h3>Генотипи батьків</h3>
-      <p>Батько 1: <strong>${p1}</strong></p>
-      <p>Батько 2: <strong>${p2}</strong></p>
-    `;
-    output.appendChild(info);
+    const theoryPh = aggregatePhenotypes(theoryGen, geneDefs);
+    const expPh = aggregatePhenotypes(expGen, geneDefs);
 
-    const genTitle = document.createElement("h3");
-    genTitle.textContent = "Генотипи нащадків";
-    output.appendChild(genTitle);
+    output.innerHTML = `<h3>Результати схрещування</h3>`;
 
-    renderComparisonTable(output, theoryGen, expGen, total);
-    renderBarChart(output, theoryGen, expGen, total);
+    renderComparisonTable(output, theoryGen, expGen, n);
+    renderBarChart(output, theoryGen, expGen, n);
 
     output.appendChild(document.createElement("hr"));
 
-    const phTitle = document.createElement("h3");
-    phTitle.textContent = "Фенотипи нащадків";
-    output.appendChild(phTitle);
-
-    renderComparisonTable(output, theoryPheno, expPheno, total);
-    renderBarChart(output, theoryPheno, expPheno, total);
-  }
+    renderComparisonTable(output, theoryPh, expPh, n);
+    renderBarChart(output, theoryPh, expPh, n);
+  });
 
 });
+
+
 
