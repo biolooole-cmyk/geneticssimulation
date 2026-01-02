@@ -1,40 +1,83 @@
 /*************************************************
  * charts.js
- * Візуалізація результатів симуляції
- * Працює і з генотипами, і з фенотипами
+ * Візуалізація результатів генетичної симуляції
+ * (9 клас, візуальні фенотипи)
  *************************************************/
 
-/* =================================================
-   КОНСТАНТИ
-   ================================================= */
+import Chart from "https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.esm.js";
 
-const COLORS = {
-  theory: "#4a6fa5",
-  experiment: "#c44536"
-};
+/* ===============================================
+   СТАН
+   =============================================== */
 
-const FONT = "12px system-ui";
-
-/* =================================================
-   ОЧИЩЕННЯ (викликається з app.js)
-   ================================================= */
+let charts = [];
 
 export function clearCharts(container) {
+  charts.forEach(c => c.destroy());
+  charts = [];
   container.innerHTML = "";
 }
 
-/* =================================================
-   1. ТАБЛИЦЯ ПОРІВНЯННЯ
-   ================================================= */
+/* ===============================================
+   ВІЗУАЛЬНІ ФЕНОТИПИ (СТАБІЛЬНО)
+   =============================================== */
 
-export function renderComparisonTable(container, theory, experiment, total) {
+/*
+  Ключі приходять з aggregatePhenotypes:
+  приклади:
+  - "жовте"
+  - "зелене"
+  - "гладке"
+  - "зморшкувате"
+  - "жовте + гладке"
+*/
+
+function phenotypeIcon(key) {
+  // Колір
+  if (key.includes("жовте")) {
+    return `<span class="seed yellow"></span>`;
+  }
+  if (key.includes("зелене")) {
+    return `<span class="seed green"></span>`;
+  }
+
+  // Форма
+  if (key.includes("гладке")) {
+    return `<span class="shape round"></span>`;
+  }
+  if (key.includes("зморшкувате")) {
+    return `<span class="shape wrinkled"></span>`;
+  }
+
+  // Комбінований фенотип
+  if (key.includes("+")) {
+    return `
+      <span class="seed ${key.includes("жовте") ? "yellow" : "green"}"></span>
+      <span class="shape ${key.includes("гладке") ? "round" : "wrinkled"}"></span>
+    `;
+  }
+
+  // fallback
+  return `<span class="seed hetero"></span>`;
+}
+
+/* ===============================================
+   ТАБЛИЦЯ ПОРІВНЯННЯ
+   =============================================== */
+
+export function renderComparisonTable(
+  container,
+  theory,
+  experiment,
+  total
+) {
   const table = document.createElement("table");
   table.className = "result-table";
 
   table.innerHTML = `
     <thead>
       <tr>
-        <th>Категорія</th>
+        <th>Фенотип</th>
         <th>Теорія (%)</th>
         <th>Експеримент (%)</th>
       </tr>
@@ -43,163 +86,86 @@ export function renderComparisonTable(container, theory, experiment, total) {
   `;
 
   const tbody = table.querySelector("tbody");
-
-  const keys = Object.keys(theory).sort((a, b) =>
-    a.localeCompare(b, "uk")
-  );
+  const keys = Object.keys({ ...theory, ...experiment });
 
   keys.forEach(key => {
-    const theoryPct = (theory[key] * 100).toFixed(1);
-    const expPct =
-      ((experiment[key] || 0) / total * 100).toFixed(1);
+    const t = theory[key] || 0;
+    const e = experiment[key] || 0;
 
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td class="label-cell">${key}</td>
-      <td>${theoryPct}</td>
-      <td>${expPct}</td>
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td class="label-cell">
+        ${phenotypeIcon(key)}
+        <span>${key}</span>
+      </td>
+      <td>${((t / total) * 100).toFixed(1)}</td>
+      <td>${((e / total) * 100).toFixed(1)}</td>
     `;
-    tbody.appendChild(tr);
+    tbody.appendChild(row);
   });
 
   container.appendChild(table);
 }
 
-/* =================================================
-   2. СТОВПЧИКОВА ДІАГРАМА
-   ================================================= */
+/* ===============================================
+   СТОВПЧИКОВА ДІАГРАМА
+   =============================================== */
 
-export function renderBarChart(container, theory, experiment, total) {
+export function renderBarChart(
+  container,
+  theory,
+  experiment,
+  total
+) {
   const canvas = document.createElement("canvas");
-
-  const keys = Object.keys(theory);
-  canvas.width = Math.max(700, keys.length * 140);
-  canvas.height = 420;
-
   container.appendChild(canvas);
 
-  const ctx = canvas.getContext("2d");
-  ctx.font = FONT;
+  const labels = Object.keys({ ...theory, ...experiment });
 
-  const padding = 80;
-  const chartHeight = canvas.height - padding * 2;
-  const chartWidth = canvas.width - padding * 2;
-
-  const sortedKeys = keys.sort((a, b) =>
-    a.localeCompare(b, "uk")
+  const theoryData = labels.map(
+    l => ((theory[l] || 0) / total) * 100
   );
 
-  const groupWidth = chartWidth / sortedKeys.length;
-  const barWidth = groupWidth / 3;
+  const expData = labels.map(
+    l => ((experiment[l] || 0) / total) * 100
+  );
 
-  drawAxes(ctx, canvas, padding, chartHeight);
-
-  sortedKeys.forEach((key, i) => {
-    const theoryVal = theory[key] * 100;
-    const expVal =
-      ((experiment[key] || 0) / total) * 100;
-
-    const xBase = padding + i * groupWidth;
-
-    drawBar(
-      ctx,
-      xBase + barWidth * 0.5,
-      theoryVal,
-      barWidth,
-      chartHeight,
-      canvas.height - padding,
-      COLORS.theory
-    );
-
-    drawBar(
-      ctx,
-      xBase + barWidth * 1.5,
-      expVal,
-      barWidth,
-      chartHeight,
-      canvas.height - padding,
-      COLORS.experiment
-    );
-
-    drawLabel(
-      ctx,
-      key,
-      xBase + groupWidth / 2,
-      canvas.height - padding + 22,
-      groupWidth
-    );
-  });
-
-  drawLegend(ctx, canvas.width - 220, padding);
-}
-
-/* =================================================
-   3. ДОПОМІЖНІ ФУНКЦІЇ
-   ================================================= */
-
-function drawAxes(ctx, canvas, padding, chartHeight) {
-  ctx.strokeStyle = "#000";
-  ctx.beginPath();
-  ctx.moveTo(padding, padding);
-  ctx.lineTo(padding, canvas.height - padding);
-  ctx.lineTo(canvas.width - padding, canvas.height - padding);
-  ctx.stroke();
-
-  ctx.textAlign = "right";
-
-  [0, 25, 50, 75, 100].forEach(v => {
-    const y =
-      canvas.height - padding - (v / 100) * chartHeight;
-    ctx.fillText(v + "%", padding - 8, y + 4);
-  });
-
-  ctx.save();
-  ctx.translate(25, canvas.height / 2);
-  ctx.rotate(-Math.PI / 2);
-  ctx.textAlign = "center";
-  ctx.fillText("Частота (%)", 0, 0);
-  ctx.restore();
-}
-
-function drawBar(ctx, x, value, width, height, baseY, color) {
-  const h = (value / 100) * height;
-  ctx.fillStyle = color;
-  ctx.fillRect(x, baseY - h, width, h);
-}
-
-function drawLegend(ctx, x, y) {
-  ctx.textAlign = "left";
-
-  ctx.fillStyle = COLORS.theory;
-  ctx.fillRect(x, y, 14, 14);
-  ctx.fillStyle = "#000";
-  ctx.fillText("Теорія", x + 22, y + 12);
-
-  ctx.fillStyle = COLORS.experiment;
-  ctx.fillRect(x, y + 24, 14, 14);
-  ctx.fillStyle = "#000";
-  ctx.fillText("Експеримент", x + 22, y + 36);
-}
-
-function drawLabel(ctx, text, x, y, maxWidth) {
-  ctx.fillStyle = "#000";
-  ctx.textAlign = "center";
-
-  const words = text.split(" ");
-  let line = "";
-  let offsetY = 0;
-
-  words.forEach(word => {
-    const test = line + word + " ";
-    if (ctx.measureText(test).width > maxWidth) {
-      ctx.fillText(line, x, y + offsetY);
-      line = word + " ";
-      offsetY += 14;
-    } else {
-      line = test;
+  const chart = new Chart(canvas, {
+    type: "bar",
+    data: {
+      labels,
+      datasets: [
+        {
+          label: "Теоретично",
+          data: theoryData,
+          backgroundColor: "rgba(74, 111, 165, 0.6)"
+        },
+        {
+          label: "Експериментально",
+          data: expData,
+          backgroundColor: "rgba(196, 69, 54, 0.6)"
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          position: "top"
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          title: {
+            display: true,
+            text: "Відсоток (%)"
+          }
+        }
+      }
     }
   });
 
-  ctx.fillText(line, x, y + offsetY);
+  charts.push(chart);
 }
 
