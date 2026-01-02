@@ -1,42 +1,36 @@
 /*************************************************
  * genetics.js
- * Наукова модель спадковості (Мендель)
- * Рівні: генотип → гамети → зиготи → фенотип
+ * Біологічне ядро симуляції спадковості
+ *
+ * ✔ коректний мейоз
+ * ✔ ймовірнісна модель
+ * ✔ mono / di
+ * ✔ фенотипи (додані без ламання ядра)
  *************************************************/
 
 /* =================================================
-   1. ЗАГАЛЬНІ НАЛАШТУВАННЯ
+   1. СТРУКТУРА ЛОКУСІВ
    ================================================= */
 
-/**
- * Локусна структура моделі
- * mono — один ген (A)
- * di   — два гени (A, B)
- */
 const LOCI = {
   mono: ["A"],
   di: ["A", "B"]
 };
 
 /* =================================================
-   2. ВАЛІДАЦІЯ ТА НОРМАЛІЗАЦІЯ ГЕНОТИПІВ
+   2. ВАЛІДАЦІЯ ГЕНОТИПІВ
    ================================================= */
 
-/**
- * Перевіряє біологічну коректність генотипу
- */
 function validateGenotype(genotype, mode) {
   const loci = LOCI[mode];
   if (!loci) return false;
 
-  // Довжина генотипу має відповідати кількості локусів
   if (genotype.length !== loci.length * 2) return false;
 
   for (let i = 0; i < loci.length; i++) {
     const pair = genotype.slice(i * 2, i * 2 + 2);
     const locus = loci[i];
 
-    // У парі мають бути відповідні алелі (наприклад A та a)
     if (
       !pair.includes(locus) ||
       !pair.toLowerCase().includes(locus.toLowerCase())
@@ -48,10 +42,11 @@ function validateGenotype(genotype, mode) {
   return true;
 }
 
-/**
- * Приводить генотип до канонічного вигляду
- * Наприклад: aA → Aa, BbAa → AaBb
- */
+/* =================================================
+   3. НОРМАЛІЗАЦІЯ ГЕНОТИПУ
+   (канонічний запис, не для фенотипу)
+   ================================================= */
+
 function normalizeGenotype(genotype, mode) {
   const loci = LOCI[mode];
   let normalized = "";
@@ -61,7 +56,7 @@ function normalizeGenotype(genotype, mode) {
       .split("")
       .filter(a => a.toUpperCase() === locus);
 
-    // Домінантний алель завжди перший
+    // A перед a — лише для канонічного запису
     alleles.sort();
     normalized += alleles.join("");
   });
@@ -70,43 +65,35 @@ function normalizeGenotype(genotype, mode) {
 }
 
 /* =================================================
-   3. УТВОРЕННЯ ГАМЕТ (МЕЙОЗ)
+   4. УТВОРЕННЯ ГАМЕТ (МЕЙОЗ)
    ================================================= */
 
-/**
- * Формує розподіл гамет
- * Повертає об’єкт вигляду:
- * { гамета: ймовірність }
- */
 function getGameteDistribution(genotype, mode) {
   genotype = normalizeGenotype(genotype, mode);
   const loci = LOCI[mode];
 
-  // Початковий набір (порожня гамета з імовірністю 1)
   let gametes = [{ seq: "", p: 1 }];
 
   loci.forEach((locus, index) => {
     const pair = genotype.slice(index * 2, index * 2 + 2);
 
-    // Якщо алелі однакові — варіант лише один
     const alleles =
       pair[0] === pair[1] ? [pair[0]] : [pair[0], pair[1]];
 
-    const newGametes = [];
+    const next = [];
 
     gametes.forEach(g => {
       alleles.forEach(a => {
-        newGametes.push({
+        next.push({
           seq: g.seq + a,
           p: g.p * (1 / alleles.length)
         });
       });
     });
 
-    gametes = newGametes;
+    gametes = next;
   });
 
-  // Агрегація ймовірностей однакових гамет
   const distribution = {};
   gametes.forEach(g => {
     distribution[g.seq] = (distribution[g.seq] || 0) + g.p;
@@ -116,20 +103,15 @@ function getGameteDistribution(genotype, mode) {
 }
 
 /* =================================================
-   4. ТЕОРЕТИЧНИЙ РОЗПОДІЛ ЗИГОТ
+   5. ТЕОРЕТИЧНИЙ РОЗПОДІЛ ГЕНОТИПІВ
    ================================================= */
 
-/**
- * Обчислює теоретичний розподіл генотипів нащадків
- */
 export function getTheoreticalDistribution(parent1, parent2, mode) {
   if (
     !validateGenotype(parent1, mode) ||
     !validateGenotype(parent2, mode)
   ) {
-    throw new Error(
-      "Біологічно некоректний генотип одного з батьків"
-    );
+    throw new Error("Біологічно некоректний генотип батьків");
   }
 
   const g1 = getGameteDistribution(parent1, mode);
@@ -137,14 +119,13 @@ export function getTheoreticalDistribution(parent1, parent2, mode) {
 
   const offspring = {};
 
-  // Комбінація гамет → зиготи
-  for (const gam1 in g1) {
-    for (const gam2 in g2) {
-      const zygoteRaw = gam1 + gam2;
-      const zygote = normalizeGenotype(zygoteRaw, mode);
-      const p = g1[gam1] * g2[gam2];
+  for (const a in g1) {
+    for (const b in g2) {
+      const raw = a + b;
+      const genotype = normalizeGenotype(raw, mode);
+      const p = g1[a] * g2[b];
 
-      offspring[zygote] = (offspring[zygote] || 0) + p;
+      offspring[genotype] = (offspring[genotype] || 0) + p;
     }
   }
 
@@ -152,31 +133,64 @@ export function getTheoreticalDistribution(parent1, parent2, mode) {
 }
 
 /* =================================================
-   5. ФЕНОТИП (ПОВНЕ ДОМІНУВАННЯ)
+   6. ГЕНОТИП → ФЕНОТИП
+   (повне домінування, шкільний рівень)
    ================================================= */
 
 /**
- * Перетворює генотип на фенотип
- * (припущення: повне домінування)
+ * geneDefs = [
+ *   {
+ *     trait: "Колір насіння",
+ *     dom: "A",
+ *     rec: "a",
+ *     domDesc: "жовте",
+ *     recDesc: "зелене"
+ *   }
+ * ]
  */
-export function genotypeToPhenotype(genotype, mode) {
-  genotype = normalizeGenotype(genotype, mode);
-
-  if (mode === "mono") {
-    return genotype.includes("A")
-      ? "Домінантний фенотип"
-      : "Рецесивний фенотип";
+export function genotypeToPhenotype(genotype, geneDefs) {
+  if (genotype.length !== geneDefs.length * 2) {
+    throw new Error("Генотип не відповідає опису генів");
   }
 
-  // Дигібридний випадок
   const phenotype = [];
 
-  phenotype.push(
-    genotype.slice(0, 2).includes("A") ? "A-" : "aa"
-  );
-  phenotype.push(
-    genotype.slice(2).includes("B") ? "B-" : "bb"
+  geneDefs.forEach((gene, i) => {
+    const pair = genotype.slice(i * 2, i * 2 + 2);
+    const hasDominant = pair.includes(gene.dom);
+
+    phenotype.push(
+      `${gene.trait}: ${
+        hasDominant ? gene.domDesc : gene.recDesc
+      }`
+    );
+  });
+
+  return phenotype.join("; ");
+}
+
+/* =================================================
+   7. АГРЕГАЦІЯ ФЕНОТИПІВ
+   ================================================= */
+
+/**
+ * Працює і з ймовірностями, і з кількостями
+ */
+export function aggregatePhenotypes(
+  genotypeDistribution,
+  geneDefs
+) {
+  const result = {};
+
+  Object.entries(genotypeDistribution).forEach(
+    ([genotype, value]) => {
+      const phenotype =
+        genotypeToPhenotype(genotype, geneDefs);
+
+      result[phenotype] =
+        (result[phenotype] || 0) + value;
+    }
   );
 
-  return phenotype.join(" ");
+  return result;
 }
