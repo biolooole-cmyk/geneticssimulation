@@ -1,175 +1,264 @@
 /*************************************************
  * app.js
- * Керування інтерфейсом генетичної симуляції
+ * Еталонна логіка керування генетичною симуляцією
+ * Ген → алелі → генотип → теорія → експеримент
  *************************************************/
 
-import { simulate } from "./simulation.js";
 import { getTheoreticalDistribution } from "./genetics.js";
-import { drawChart, clearChart } from "./charts.js";
+import { simulate } from "./simulation.js";
 
-/* ========= DOM-ЕЛЕМЕНТИ ========= */
+/* =================================================
+   1. DOM
+   ================================================= */
 
-const modeSelect = document.getElementById("mode");
-const parent1Select = document.getElementById("parent1");
-const parent2Select = document.getElementById("parent2");
+const modelRadios = document.querySelectorAll('input[name="model"]');
+
+const gene1 = {
+  trait: document.getElementById("gene1-trait"),
+  dom: document.getElementById("gene1-dom-symbol"),
+  rec: document.getElementById("gene1-rec-symbol")
+};
+
+const gene2Block = document.getElementById("gene2-block");
+const gene2 = {
+  trait: document.getElementById("gene2-trait"),
+  dom: document.getElementById("gene2-dom-symbol"),
+  rec: document.getElementById("gene2-rec-symbol")
+};
+
+const parents = {
+  p1: {
+    g1: [
+      document.getElementById("p1-g1-a1"),
+      document.getElementById("p1-g1-a2")
+    ],
+    g2: [
+      document.getElementById("p1-g2-a1"),
+      document.getElementById("p1-g2-a2")
+    ]
+  },
+  p2: {
+    g1: [
+      document.getElementById("p2-g1-a1"),
+      document.getElementById("p2-g1-a2")
+    ],
+    g2: [
+      document.getElementById("p2-g2-a1"),
+      document.getElementById("p2-g2-a2")
+    ]
+  }
+};
+
 const offspringInput = document.getElementById("offspring");
+const runBtn = document.getElementById("run");
+const output = document.getElementById("output");
 
-const runButton = document.getElementById("run");
-const resetButton = document.getElementById("reset");
-
-const theoryOutput = document.getElementById("theory-output");
-const experimentOutput = document.getElementById("experiment-output");
-
-/* ========= ДАНІ ========= */
-
-// Можливі генотипи
-const MONO_GENOTYPES = ["AA", "Aa", "aa"];
-
-// Дигібридне схрещування — всі можливі генотипи
-const DI_GENOTYPES = [
-  "AABB", "AABb", "AAbb",
-  "AaBB", "AaBb", "Aabb",
-  "aaBB", "aaBb", "aabb"
-];
-
-/* ========= ІНІЦІАЛІЗАЦІЯ ========= */
+/* =================================================
+   2. INIT
+   ================================================= */
 
 init();
 
 function init() {
+  attachEvents();
+  updateModel();
+}
+
+/* =================================================
+   3. EVENTS
+   ================================================= */
+
+function attachEvents() {
+  modelRadios.forEach(r =>
+    r.addEventListener("change", updateModel)
+  );
+
+  // оновлення селектів одразу після зміни алелів
+  [gene1.dom, gene1.rec, gene2.dom, gene2.rec].forEach(input => {
+    input.addEventListener("input", updateParentSelectors);
+  });
+
+  runBtn.addEventListener("click", runSimulation);
+}
+
+/* =================================================
+   4. MODEL
+   ================================================= */
+
+function getMode() {
+  return [...modelRadios].find(r => r.checked).value;
+}
+
+function updateModel() {
+  const mode = getMode();
+
+  gene2Block.style.display = mode === "di" ? "block" : "none";
+
+  clearParentSelectors();
   updateParentSelectors();
-  attachEventListeners();
 }
 
-/* ========= ОБРОБНИКИ ПОДІЙ ========= */
+/* =================================================
+   5. VALIDATION
+   ================================================= */
 
-function attachEventListeners() {
-  modeSelect.addEventListener("change", updateParentSelectors);
-  runButton.addEventListener("click", runSimulation);
-  resetButton.addEventListener("click", resetSimulation);
+function validateGene(gene, index) {
+  const trait = gene.trait.value.trim();
+  const dom = gene.dom.value.trim();
+  const rec = gene.rec.value.trim();
+
+  if (!trait) {
+    throw new Error(`Не вказана ознака для гена ${index}`);
+  }
+
+  if (!dom || !rec) {
+    throw new Error(`Не вказані алелі для гена ${index}`);
+  }
+
+  if (dom === rec) {
+    throw new Error(`Алелі гена ${index} мають бути різними`);
+  }
+
+  if (!/^[A-Za-z]$/.test(dom) || !/^[A-Za-z]$/.test(rec)) {
+    throw new Error(`Алелі гена ${index} мають бути однією літерою`);
+  }
+
+  return { dom, rec };
 }
 
-/* ========= ЛОГІКА ІНТЕРФЕЙСУ ========= */
+/* =================================================
+   6. PARENTS
+   ================================================= */
 
-/**
- * Оновлює випадаючі списки генотипів
- * відповідно до типу схрещування
- */
-function updateParentSelectors() {
-  const mode = modeSelect.value;
-  const genotypes = mode === "mono" ? MONO_GENOTYPES : DI_GENOTYPES;
-
-  populateSelect(parent1Select, genotypes);
-  populateSelect(parent2Select, genotypes);
-}
-
-/**
- * Заповнює select значеннями
- */
-function populateSelect(selectElement, values) {
-  selectElement.innerHTML = "";
-
-  values.forEach(genotype => {
-    const option = document.createElement("option");
-    option.value = genotype;
-    option.textContent = genotype;
-    selectElement.appendChild(option);
+function clearParentSelectors() {
+  Object.values(parents).forEach(parent => {
+    Object.values(parent).forEach(gene =>
+      gene.forEach(sel => (sel.innerHTML = ""))
+    );
   });
 }
 
-/* ========= СИМУЛЯЦІЯ ========= */
+function fillSelectors(selectors, alleles) {
+  selectors.forEach(sel => {
+    sel.innerHTML = "";
+    alleles.forEach(a => {
+      const opt = document.createElement("option");
+      opt.value = a;
+      opt.textContent = a;
+      sel.appendChild(opt);
+    });
+  });
+}
+
+function updateParentSelectors() {
+  try {
+    const g1 = validateGene(gene1, 1);
+    fillSelectors(
+      [...parents.p1.g1, ...parents.p2.g1],
+      [g1.dom, g1.rec]
+    );
+
+    if (getMode() === "di") {
+      const g2 = validateGene(gene2, 2);
+      fillSelectors(
+        [...parents.p1.g2, ...parents.p2.g2],
+        [g2.dom, g2.rec]
+      );
+    }
+  } catch {
+    // мовчки — користувач ще вводить дані
+  }
+}
+
+function collectGenotype(parentKey, genes) {
+  let genotype = "";
+
+  genes.forEach(gene => {
+    const [a1, a2] = parents[parentKey][gene]
+      .map(sel => sel.value);
+
+    if (!a1 || !a2) {
+      throw new Error("Не всі алелі обрані у батьків");
+    }
+
+    // домінантний ПЕРШИЙ — за логікою гена
+    genotype += a1 === a2
+      ? a1 + a2
+      : (a1 === gene.dom ? a1 + a2 : a2 + a1);
+  });
+
+  return genotype;
+}
+
+/* =================================================
+   7. SIMULATION
+   ================================================= */
 
 function runSimulation() {
-  const parent1 = parent1Select.value;
-  const parent2 = parent2Select.value;
-  const offspringCount = parseInt(offspringInput.value, 10);
+  try {
+    const mode = getMode();
 
-  if (!offspringCount || offspringCount < 1) {
-    alert("Будь ласка, введіть коректну кількість нащадків.");
-    return;
+    const g1 = validateGene(gene1, 1);
+    const genes = [{ key: "g1", ...g1 }];
+
+    if (mode === "di") {
+      const g2 = validateGene(gene2, 2);
+      genes.push({ key: "g2", ...g2 });
+    }
+
+    const p1Genotype = collectGenotype("p1", genes);
+    const p2Genotype = collectGenotype("p2", genes);
+
+    const n = parseInt(offspringInput.value, 10);
+    if (!Number.isInteger(n) || n < 1) {
+      throw new Error("Некоректна кількість нащадків");
+    }
+
+    const theory = getTheoreticalDistribution(
+      p1Genotype,
+      p2Genotype,
+      mode
+    );
+
+    const exp = simulate(
+      p1Genotype,
+      p2Genotype,
+      n,
+      mode
+    );
+
+    renderResults(p1Genotype, p2Genotype, theory, exp, n);
+  } catch (err) {
+    alert(err.message);
   }
-
-  // Теоретичне очікування
-  const theoretical = getTheoreticalDistribution(parent1, parent2, modeSelect.value);
-  renderTheory(theoretical);
-
-  // Експеримент
-  const experimental = simulate(parent1, parent2, offspringCount, modeSelect.value);
-  renderExperiment(experimental, offspringCount);
-
-  // Візуалізація
-  drawChart(
-    Object.fromEntries(
-      Object.entries(experimental).map(
-        ([key, value]) => [key, value / offspringCount]
-      )
-    )
-  );
 }
 
-/* ========= ВІДОБРАЖЕННЯ РЕЗУЛЬТАТІВ ========= */
+/* =================================================
+   8. OUTPUT
+   ================================================= */
 
-/**
- * Виводить теоретичний розподіл
- */
-function renderTheory(distribution) {
-  theoryOutput.innerHTML = formatDistribution(
-    distribution,
-    "Очікувана ймовірність"
-  );
-}
+function renderResults(p1, p2, theory, exp, n) {
+  let html = `
+    <h3>Генотипи батьків</h3>
+    <p>Батько 1: <strong>${p1}</strong></p>
+    <p>Батько 2: <strong>${p2}</strong></p>
 
-/**
- * Виводить результати експерименту
- */
-function renderExperiment(results, total) {
-  const frequencies = {};
+    <h3>Теоретичний розподіл</h3>
+    <ul>
+  `;
 
-  Object.keys(results).forEach(key => {
-    frequencies[key] = (results[key] / total).toFixed(3);
+  Object.entries(theory).forEach(([g, p]) => {
+    html += `<li>${g}: ${(p * 100).toFixed(1)}%</li>`;
   });
 
-  experimentOutput.innerHTML = formatDistribution(
-    frequencies,
-    "Відносна частота"
-  );
+  html += `</ul><h3>Експеримент (${n} нащадків)</h3><ul>`;
+
+  Object.entries(exp).forEach(([g, c]) => {
+    html += `<li>${g}: ${c}</li>`;
+  });
+
+  html += "</ul>";
+
+  output.innerHTML = html;
 }
 
-/**
- * Форматує розподіл у вигляді таблиці
- */
-function formatDistribution(data, label) {
-  let html = `
-    <table class="result-table">
-      <tr>
-        <th>Генотип</th>
-        <th>${label}</th>
-      </tr>`;
-
-  for (const key in data) {
-    html += `
-      <tr>
-        <td>${key}</td>
-        <td>${data[key]}</td>
-      </tr>`;
-  }
-
-  html += "</table>";
-  return html;
-}
-
-/* ========= СКИДАННЯ ========= */
-
-function resetSimulation() {
-  theoryOutput.innerHTML = `
-    <p class="placeholder">
-      Запустіть симуляцію, щоб побачити теоретичні ймовірності.
-    </p>`;
-
-  experimentOutput.innerHTML = `
-    <p class="placeholder">
-      Тут з’являться результати випадкового моделювання.
-    </p>`;
-
-  clearChart();
-}
