@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>
+    Генетична симуляція: моногібридне та дигібридне схрещування
+  </title>
+
+  <meta name="description"
+        content="Навчальна наукова симуляція моногібридного та дигібридного схрещування за законами Менделя." />
+
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+
+<body>
+
+  <!-- ================= HEADER ================= -->
+  <header class="app-header">
+    <h1>Генетична симуляція схрещувань</h1>
+    <p class="subtitle">
+      Моногібридне та дигібридне схрещування • теорія і експеримент
+    </p>
+  </header>
+
+  <!-- ================= MAIN ================= -->
+  <main class="app-container">
+
+    <!-- ===== 1. ВИБІР ТИПУ СХРЕЩУВАННЯ ===== -->
+    <section class="panel">
+      <h2>1. Тип схрещування</h2>
+
+      <label for="mode">Оберіть модель:</label>
+      <select id="mode" aria-label="Тип схрещування">
+        <option value="mono">Моногібридне (1 ген)</option>
+        <option value="di">Дигібридне (2 гени)</option>
+      </select>
+
+      <p class="hint">
+        Моногібридне схрещування — один спадковий ознака (A/a).<br>
+        Дигібридне схрещування — дві незалежні ознаки (A/a і B/b).
+      </p>
+    </section>
+
+    <!-- ===== 2. ГЕНОТИПИ БАТЬКІВ ===== -->
+    <section class="panel">
+      <h2>2. Генотипи батьків</h2>
+
+      <div class="parents-grid">
+
+        <div class="parent">
+          <h3>Батьківська особина 1</h3>
+          <select id="parent1" aria-label="Генотип першого з батьків">
+            <!-- Заповнюється з JavaScript -->
+          </select>
+        </div>
+
+        <div class="parent">
+          <h3>Батьківська особина 2</h3>
+          <select id="parent2" aria-label="Генотип другого з батьків">
+            <!-- Заповнюється з JavaScript -->
+          </select>
+        </div>
+
+      </div>
+
+      <p class="hint">
+        Набір можливих генотипів залежить від обраного типу схрещування.
+      </p>
+    </section>
+
+    <!-- ===== 3. ПАРАМЕТРИ ЕКСПЕРИМЕНТУ ===== -->
+    <section class="panel">
+      <h2>3. Параметри експерименту</h2>
+
+      <label for="offspring">
+        Кількість нащадків (розмір вибірки):
+      </label>
+      <input
+        type="number"
+        id="offspring"
+        min="1"
+        max="5000"
+        step="1"
+        value="100"
+      />
+
+      <p class="hint">
+        Невелика вибірка призводить до значних випадкових відхилень.<br>
+        Велика вибірка наближає результат до теоретичного очікування.
+      </p>
+    </section>
+
+    <!-- ===== 4. КЕРУВАННЯ ===== -->
+    <section class="panel controls">
+      <button id="run" class="primary" type="button">
+        Запустити симуляцію
+      </button>
+
+      <button id="reset" class="secondary" type="button">
+        Скинути результати
+      </button>
+    </section>
+
+    <!-- ===== 5. РЕЗУЛЬТАТИ ===== -->
+    <section class="panel results">
+      <h2>4. Результати</h2>
+
+      <div class="results-layout">
+
+        <div class="result-block">
+          <h3>Теоретичне очікування</h3>
+          <div id="theory-output" class="output-box">
+            <p class="placeholder">
+              Запустіть симуляцію, щоб побачити теоретичні ймовірності.
+            </p>
+          </div>
+        </div>
+
+        <div class="result-block">
+          <h3>Результат експерименту</h3>
+          <div id="experiment-output" class="output-box">
+            <p class="placeholder">
+              Тут з’являться результати випадкового моделювання.
+            </p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ===== 6. ВІЗУАЛІЗАЦІЯ ===== -->
+    <section class="panel">
+      <h2>5. Візуалізація розподілу</h2>
+
+      <canvas
+        id="chart"
+        width="700"
+        height="400"
+        role="img"
+        aria-label="Стовпчикова діаграма розподілу генотипів">
+      </canvas>
+
+      <p class="hint">
+        Діаграма відображає частоти генотипів серед нащадків.
+      </p>
+    </section>
+
+  </main>
+
+  <!-- ================= FOOTER ================= -->
+  <footer class="app-footer">
+    <p>
+      Навчальна генетична симуляція • Закони Менделя •
+      Використовується з освітньою метою
+    </p>
+  </footer>
+
+  <!-- ================= JS ================= -->
+  <script type="module" src="js/app.js"></script>
+
+</body>
+</html>
