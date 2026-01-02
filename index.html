@@ -1,144 +1,174 @@
-<!DOCTYPE html>
+<<!DOCTYPE html>
 <html lang="uk">
 <head>
-  <meta charset="UTF-8">
-  <title>Генетична симуляція (9 клас)</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link rel="stylesheet" href="style.css">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Генетична симуляція — моногібридне і дигібридне схрещування</title>
+
+  <!-- Стилі -->
+  <link rel="stylesheet" href="style.css" />
+
+  <!-- Chart.js (UMD, для GitHub Pages) -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 </head>
+
 <body>
+  <div class="container">
 
-<div class="container">
+    <h1>Генетична симуляція</h1>
+    <p>
+      Модель моногібридного та дигібридного схрещування
+      (курс біології, 9 клас)
+    </p>
 
-  <h1>Генетична симуляція</h1>
-  <p>
-    Оберіть фенотипи батьків і дослідіть, як ознаки передаються нащадкам.
-  </p>
+    <!-- ============================= -->
+    <!-- ВИБІР МОДЕЛІ -->
+    <!-- ============================= -->
 
-  <!-- ================= ТИП СХРЕЩУВАННЯ ================= -->
-  <div class="panel">
-    <div class="panel-title">Тип схрещування</div>
-    <label>
-      <input type="radio" name="model" value="mono" checked>
-      Моногібридне (1 ознака)
-    </label>
-    <label style="margin-left:20px;">
-      <input type="radio" name="model" value="di">
-      Дигібридне (2 ознаки)
-    </label>
-  </div>
+    <div class="panel">
+      <div class="panel-title">1. Тип схрещування</div>
 
-  <!-- ================= ОЗНАКА 1 ================= -->
-  <div class="panel">
-    <div class="panel-title">Ознака 1 — колір насіння</div>
+      <div class="form-row">
+        <label>
+          <input type="radio" name="model" value="mono" checked />
+          Моногібридне
+        </label>
 
-    <div class="form-row">
-      <strong>Батько 1:</strong>
-
-      <label class="phenotype">
-        <input type="radio" name="p1-g1" value="AA">
-        <span class="seed yellow"></span>
-        Жовте (AA)
-      </label>
-
-      <label class="phenotype">
-        <input type="radio" name="p1-g1" value="Aa">
-        <span class="seed hetero"></span>
-        Проміжне (Aa)
-      </label>
-
-      <label class="phenotype">
-        <input type="radio" name="p1-g1" value="aa">
-        <span class="seed green"></span>
-        Зелене (aa)
-      </label>
+        <label>
+          <input type="radio" name="model" value="di" />
+          Дигібридне
+        </label>
+      </div>
     </div>
 
-    <div class="form-row">
-      <strong>Батько 2:</strong>
+    <!-- ============================= -->
+    <!-- ОЗНАКА 1 -->
+    <!-- ============================= -->
 
-      <label class="phenotype">
-        <input type="radio" name="p2-g1" value="AA">
-        <span class="seed yellow"></span>
-        Жовте (AA)
-      </label>
+    <div class="panel">
+      <div class="panel-title">2. Ознака 1 — колір насіння</div>
 
-      <label class="phenotype">
-        <input type="radio" name="p2-g1" value="Aa">
-        <span class="seed hetero"></span>
-        Проміжне (Aa)
-      </label>
+      <div class="form-row">
+        <strong>Батько 1:</strong>
 
-      <label class="phenotype">
-        <input type="radio" name="p2-g1" value="aa">
-        <span class="seed green"></span>
-        Зелене (aa)
-      </label>
-    </div>
-  </div>
+        <label>
+          <input type="radio" name="p1-g1" value="AA" />
+          <span class="seed yellow"></span> жовте (AA)
+        </label>
 
-  <!-- ================= ОЗНАКА 2 ================= -->
-  <div class="panel" id="trait2" style="display:none;">
-    <div class="panel-title">Ознака 2 — форма насіння</div>
+        <label>
+          <input type="radio" name="p1-g1" value="Aa" />
+          <span class="seed hetero"></span> жовто-зелене (Aa)
+        </label>
 
-    <div class="form-row">
-      <strong>Батько 1:</strong>
+        <label>
+          <input type="radio" name="p1-g1" value="aa" />
+          <span class="seed green"></span> зелене (aa)
+        </label>
+      </div>
 
-      <label class="phenotype">
-        <input type="radio" name="p1-g2" value="BB">
-        <span class="shape round"></span>
-        Гладке (BB)
-      </label>
+      <div class="form-row">
+        <strong>Батько 2:</strong>
 
-      <label class="phenotype">
-        <input type="radio" name="p1-g2" value="Bb">
-        <span class="shape hetero-shape"></span>
-        Проміжна форма (Bb)
-      </label>
+        <label>
+          <input type="radio" name="p2-g1" value="AA" />
+          <span class="seed yellow"></span> жовте (AA)
+        </label>
 
-      <label class="phenotype">
-        <input type="radio" name="p1-g2" value="bb">
-        <span class="shape wrinkled"></span>
-        Зморшкувате (bb)
-      </label>
+        <label>
+          <input type="radio" name="p2-g1" value="Aa" />
+          <span class="seed hetero"></span> жовто-зелене (Aa)
+        </label>
+
+        <label>
+          <input type="radio" name="p2-g1" value="aa" />
+          <span class="seed green"></span> зелене (aa)
+        </label>
+      </div>
     </div>
 
-    <div class="form-row">
-      <strong>Батько 2:</strong>
+    <!-- ============================= -->
+    <!-- ОЗНАКА 2 (ДИГІБРИДНЕ) -->
+    <!-- ============================= -->
 
-      <label class="phenotype">
-        <input type="radio" name="p2-g2" value="BB">
-        <span class="shape round"></span>
-        Гладке (BB)
-      </label>
+    <div class="panel" id="trait2" style="display: none;">
+      <div class="panel-title">3. Ознака 2 — форма насіння</div>
 
-      <label class="phenotype">
-        <input type="radio" name="p2-g2" value="Bb">
-        <span class="shape hetero-shape"></span>
-        Проміжна форма (Bb)
-      </label>
+      <div class="form-row">
+        <strong>Батько 1:</strong>
 
-      <label class="phenotype">
-        <input type="radio" name="p2-g2" value="bb">
-        <span class="shape wrinkled"></span>
-        Зморшкувате (bb)
-      </label>
+        <label>
+          <input type="radio" name="p1-g2" value="BB" />
+          <span class="shape round"></span> гладке (BB)
+        </label>
+
+        <label>
+          <input type="radio" name="p1-g2" value="Bb" />
+          <span class="shape hetero-shape"></span> проміжне (Bb)
+        </label>
+
+        <label>
+          <input type="radio" name="p1-g2" value="bb" />
+          <span class="shape wrinkled"></span> зморшкувате (bb)
+        </label>
+      </div>
+
+      <div class="form-row">
+        <strong>Батько 2:</strong>
+
+        <label>
+          <input type="radio" name="p2-g2" value="BB" />
+          <span class="shape round"></span> гладке (BB)
+        </label>
+
+        <label>
+          <input type="radio" name="p2-g2" value="Bb" />
+          <span class="shape hetero-shape"></span> проміжне (Bb)
+        </label>
+
+        <label>
+          <input type="radio" name="p2-g2" value="bb" />
+          <span class="shape wrinkled"></span> зморшкувате (bb)
+        </label>
+      </div>
     </div>
+
+    <!-- ============================= -->
+    <!-- КІЛЬКІСТЬ НАЩАДКІВ -->
+    <!-- ============================= -->
+
+    <div class="panel">
+      <div class="panel-title">4. Кількість нащадків</div>
+
+      <div class="form-row">
+        <input
+          type="number"
+          id="offspring"
+          min="20"
+          value="200"
+        />
+        <span>особин</span>
+      </div>
+    </div>
+
+    <!-- ============================= -->
+    <!-- ЗАПУСК -->
+    <!-- ============================= -->
+
+    <div class="panel">
+      <button id="run">Запустити схрещування</button>
+    </div>
+
+    <!-- ============================= -->
+    <!-- РЕЗУЛЬТАТИ -->
+    <!-- ============================= -->
+
+    <div id="output"></div>
+
   </div>
 
-  <!-- ================= ПАРАМЕТРИ ================= -->
-  <div class="panel">
-    <label>Кількість нащадків:</label>
-    <input id="offspring" type="number" min="20" value="200">
-    <br><br>
-    <button id="run">Запустити схрещування</button>
-  </div>
+  <!-- ГОЛОВНИЙ СКРИПТ -->
+  <script type="module" src="app.js"></script>
 
-  <!-- ================= РЕЗУЛЬТАТИ ================= -->
-  <div id="output"></div>
-
-</div>
-
-<script type="module" src="app.js"></script>
 </body>
 </html>
