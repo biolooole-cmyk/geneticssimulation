@@ -1,17 +1,16 @@
-/* ===============================================
+/* =================================================
    БАЗОВІ НАЛАШТУВАННЯ
-   =============================================== */
+   ================================================= */
 
 :root {
-  --bg-main: #f7f8fa;
+  --bg-main: #f6f7f9;
   --bg-panel: #ffffff;
-  --border: #dcdfe3;
+  --border: #d7dbe0;
   --text-main: #1f2933;
   --text-muted: #5f6c7b;
 
   --accent: #4a6fa5;
   --accent-light: #e6eef8;
-  --danger: #c44536;
 }
 
 * {
@@ -27,95 +26,85 @@ body {
   line-height: 1.45;
 }
 
-/* ===============================================
+/* =================================================
    КОНТЕЙНЕР
-   =============================================== */
+   ================================================= */
 
 .container {
-  max-width: 1200px;
+  max-width: 1100px;
   margin: 0 auto;
   padding: 24px;
 }
 
-/* ===============================================
+/* =================================================
    ЗАГОЛОВКИ
-   =============================================== */
-
-h1,
-h2,
-h3 {
-  font-weight: 600;
-  margin-top: 0;
-  color: var(--text-main);
-}
+   ================================================= */
 
 h1 {
-  margin-bottom: 16px;
-}
-
-h2 {
-  margin: 28px 0 14px;
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-size: 1.9rem;
 }
 
 h3 {
-  margin: 22px 0 10px;
+  margin-top: 26px;
+  margin-bottom: 10px;
 }
 
-/* ===============================================
+p {
+  margin-top: 0;
+  color: var(--text-muted);
+}
+
+/* =================================================
    ПАНЕЛІ
-   =============================================== */
+   ================================================= */
 
 .panel {
   background: var(--bg-panel);
   border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 16px;
+  border-radius: 10px;
+  padding: 16px 18px;
   margin-bottom: 20px;
 }
 
 .panel-title {
   font-weight: 600;
-  margin-bottom: 12px;
+  margin-bottom: 10px;
 }
 
-/* ===============================================
+/* =================================================
    ФОРМИ
-   =============================================== */
+   ================================================= */
 
 .form-row {
   display: flex;
-  gap: 12px;
-  margin-bottom: 12px;
   flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+  margin-top: 8px;
 }
 
 label {
-  font-size: 0.9rem;
-  color: var(--text-muted);
-  margin-bottom: 4px;
-  display: block;
+  font-size: 0.95rem;
+  cursor: pointer;
 }
 
-input,
-select {
+input[type="radio"] {
+  margin-right: 4px;
+}
+
+input[type="number"] {
   padding: 6px 8px;
   border-radius: 6px;
   border: 1px solid var(--border);
+  width: 90px;
   font-size: 0.95rem;
-  min-width: 80px;
-  background: #fff;
 }
 
-input:focus,
-select:focus {
-  outline: none;
-  border-color: var(--accent);
-  box-shadow: 0 0 0 2px var(--accent-light);
-}
-
-/* ===============================================
+/* =================================================
    КНОПКИ
-   =============================================== */
+   ================================================= */
 
 button {
   background: var(--accent);
@@ -125,23 +114,90 @@ button {
   padding: 10px 18px;
   font-size: 1rem;
   cursor: pointer;
-  transition: background 0.2s ease, transform 0.1s ease;
 }
 
 button:hover {
   background: #3d5f8f;
 }
 
-button:active {
-  transform: translateY(1px);
+/* =================================================
+   ВІЗУАЛЬНІ ФЕНОТИПИ — КОЛІР
+   ================================================= */
+
+.phenotype {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px;
+  border-radius: 6px;
 }
 
-/* ===============================================
-   БЛОК РЕЗУЛЬТАТІВ
-   =============================================== */
+.seed {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1px solid #555;
+  display: inline-block;
+}
+
+/* Гомозиготи */
+.seed.yellow {
+  background-color: #f2c94c;
+}
+
+.seed.green {
+  background-color: #6fcf97;
+}
+
+/* Гетерозигота — ПРОМІЖНИЙ КОЛІР */
+.seed.hetero {
+  background: linear-gradient(
+    135deg,
+    #f2c94c 0%,
+    #a3c97a 50%,
+    #6fcf97 100%
+  );
+}
+
+/* =================================================
+   ВІЗУАЛЬНІ ФЕНОТИПИ — ФОРМА
+   ================================================= */
+
+.shape {
+  width: 22px;
+  height: 22px;
+  display: inline-block;
+  border: 1px solid #555;
+}
+
+/* Гладке */
+.shape.round {
+  border-radius: 50%;
+  background-color: #dcdcdc;
+}
+
+/* Зморшкувате */
+.shape.wrinkled {
+  border-radius: 4px;
+  background-color: #b0b0b0;
+}
+
+/* Проміжна форма */
+.shape.hetero-shape {
+  background: linear-gradient(
+    135deg,
+    #dcdcdc 0%,
+    #bcbcbc 50%,
+    #b0b0b0 100%
+  );
+}
+
+/* =================================================
+   РЕЗУЛЬТАТИ
+   ================================================= */
 
 #output {
-  margin-top: 28px;
+  margin-top: 30px;
 }
 
 #output hr {
@@ -150,14 +206,14 @@ button:active {
   border-top: 1px solid var(--border);
 }
 
-/* ===============================================
+/* =================================================
    ТАБЛИЦІ
-   =============================================== */
+   ================================================= */
 
 .result-table {
   width: 100%;
   border-collapse: collapse;
-  margin-top: 14px;
+  margin-top: 16px;
   background: var(--bg-panel);
   border-radius: 8px;
   overflow: hidden;
@@ -182,29 +238,32 @@ button:active {
 
 .result-table .label-cell {
   text-align: left;
-  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
-/* ===============================================
-   CANVAS (ГРАФІКИ)
-   =============================================== */
+/* =================================================
+   ГРАФІКИ
+   ================================================= */
 
 canvas {
   display: block;
-  margin: 22px auto 36px;
+  margin: 24px auto 36px;
   max-width: 100%;
   background: #fff;
   border: 1px solid var(--border);
   border-radius: 8px;
 }
 
-/* ===============================================
+/* =================================================
    АДАПТИВНІСТЬ
-   =============================================== */
+   ================================================= */
 
 @media (max-width: 768px) {
   .form-row {
     flex-direction: column;
+    align-items: flex-start;
   }
 
   button {
