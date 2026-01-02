@@ -1,162 +1,139 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
   <title>Генетична симуляція спадковості</title>
-  <link rel="stylesheet" href="css/style.css">
-</head>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
+  <link rel="stylesheet" href="style.css" />
+</head>
 <body>
 
-<header class="app-header">
+<div class="container">
+
   <h1>Генетична симуляція спадковості</h1>
-  <p class="subtitle">
-    Моделювання спадковості за законами Менделя
-  </p>
-</header>
 
-<main class="app-container">
-
-  <!-- ===== 1. ТИП МОДЕЛІ ===== -->
-  <section class="panel">
-    <h2>1. Тип моделі</h2>
-
-    <label>
-      <input type="radio" name="model" value="mono" checked>
-      Моногібридне схрещування
-    </label>
-    <label>
-      <input type="radio" name="model" value="di">
-      Дигібридне схрещування
-    </label>
-  </section>
-
-  <!-- ===== 2. ОПИС ГЕНА ===== -->
-  <section class="panel">
-    <h2>2. Ген і алелі</h2>
-
-    <!-- ГЕН 1 -->
-    <div class="gene-block" data-gene="0">
-      <h3>Ген 1</h3>
-
+  <!-- ================== ТИП СХРЕЩУВАННЯ ================== -->
+  <div class="panel">
+    <div class="panel-title">Тип схрещування</div>
+    <div class="form-row">
       <label>
-        Ознака:
-        <input type="text" id="gene1-trait" placeholder="Колір насіння">
+        <input type="radio" name="model" value="mono" checked>
+        Моногібридне
       </label>
-
-      <div class="alleles">
-        <div>
-          <strong>Домінантний алель</strong><br>
-          <input type="text" id="gene1-dom-symbol" maxlength="1" placeholder="A">
-          <input type="text" id="gene1-dom-desc" placeholder="Жовте">
-        </div>
-
-        <div>
-          <strong>Рецесивний алель</strong><br>
-          <input type="text" id="gene1-rec-symbol" maxlength="1" placeholder="a">
-          <input type="text" id="gene1-rec-desc" placeholder="Зелене">
-        </div>
-      </div>
-    </div>
-
-    <!-- ГЕН 2 -->
-    <div class="gene-block" data-gene="1" id="gene2-block">
-      <h3>Ген 2</h3>
-
       <label>
-        Ознака:
-        <input type="text" id="gene2-trait">
+        <input type="radio" name="model" value="di">
+        Дигібридне
       </label>
+    </div>
+  </div>
 
-      <div class="alleles">
-        <div>
-          <strong>Домінантний алель</strong><br>
-          <input type="text" id="gene2-dom-symbol" maxlength="1">
-          <input type="text" id="gene2-dom-desc">
-        </div>
+  <!-- ================== ГЕН 1 ================== -->
+  <div class="panel">
+    <div class="panel-title">Ген 1</div>
 
-        <div>
-          <strong>Рецесивний алель</strong><br>
-          <input type="text" id="gene2-rec-symbol" maxlength="1">
-          <input type="text" id="gene2-rec-desc">
-        </div>
+    <div class="form-row">
+      <div>
+        <label>Ознака</label>
+        <input id="gene1-trait" type="text" placeholder="Колір насіння">
       </div>
     </div>
-  </section>
 
-  <!-- ===== 3. ГЕНОТИПИ БАТЬКІВ ===== -->
-  <section class="panel">
-    <h2>3. Генотипи батьків</h2>
-
-    <div class="parents-grid">
-
-      <div class="parent" data-parent="1">
-        <h3>Батько 1</h3>
-
-        <div class="genotype-row">
-          Ген 1:
-          <select id="p1-g1-a1"></select>
-          <select id="p1-g1-a2"></select>
-        </div>
-
-        <div class="genotype-row" id="p1-gene2">
-          Ген 2:
-          <select id="p1-g2-a1"></select>
-          <select id="p1-g2-a2"></select>
-        </div>
+    <div class="form-row">
+      <div>
+        <label>Домінантний алель</label>
+        <input id="gene1-dom-symbol" type="text" maxlength="1" placeholder="A">
       </div>
-
-      <div class="parent" data-parent="2">
-        <h3>Батько 2</h3>
-
-        <div class="genotype-row">
-          Ген 1:
-          <select id="p2-g1-a1"></select>
-          <select id="p2-g1-a2"></select>
-        </div>
-
-        <div class="genotype-row" id="p2-gene2">
-          Ген 2:
-          <select id="p2-g2-a1"></select>
-          <select id="p2-g2-a2"></select>
-        </div>
+      <div>
+        <label>Опис домінантної ознаки</label>
+        <input id="gene1-dom-desc" type="text" placeholder="жовте">
       </div>
-
     </div>
-  </section>
 
-  <!-- ===== 4. ПАРАМЕТРИ ===== -->
-  <section class="panel">
-    <h2>4. Параметри моделювання</h2>
-
-    <label>
-      Кількість нащадків:
-      <input type="number" id="offspring" min="1" max="5000" value="100">
-    </label>
-  </section>
-
-  <!-- ===== 5. КЕРУВАННЯ ===== -->
-  <section class="panel controls">
-    <button id="run" class="primary">Запустити симуляцію</button>
-  </section>
-
-  <!-- ===== 6. РЕЗУЛЬТАТ ===== -->
-  <section class="panel">
-    <h2>5. Результати</h2>
-    <div id="output">
-      <p class="placeholder">
-        Результати з’являться після запуску симуляції.
-      </p>
+    <div class="form-row">
+      <div>
+        <label>Рецесивний алель</label>
+        <input id="gene1-rec-symbol" type="text" maxlength="1" placeholder="a">
+      </div>
+      <div>
+        <label>Опис рецесивної ознаки</label>
+        <input id="gene1-rec-desc" type="text" placeholder="зелене">
+      </div>
     </div>
-  </section>
+  </div>
 
-</main>
+  <!-- ================== ГЕН 2 ================== -->
+  <div class="panel" id="gene2-block" style="display:none;">
+    <div class="panel-title">Ген 2</div>
 
-<footer class="app-footer">
-  <p>Навчальна симуляція з генетики • Шкільний рівень</p>
-</footer>
+    <div class="form-row">
+      <div>
+        <label>Ознака</label>
+        <input id="gene2-trait" type="text" placeholder="Форма насіння">
+      </div>
+    </div>
 
-<script type="module" src="js/app.js"></script>
+    <div class="form-row">
+      <div>
+        <label>Домінантний алель</label>
+        <input id="gene2-dom-symbol" type="text" maxlength="1" placeholder="B">
+      </div>
+      <div>
+        <label>Опис домінантної ознаки</label>
+        <input id="gene2-dom-desc" type="text" placeholder="гладке">
+      </div>
+    </div>
+
+    <div class="form-row">
+      <div>
+        <label>Рецесивний алель</label>
+        <input id="gene2-rec-symbol" type="text" maxlength="1" placeholder="b">
+      </div>
+      <div>
+        <label>Опис рецесивної ознаки</label>
+        <input id="gene2-rec-desc" type="text" placeholder="зморшкувате">
+      </div>
+    </div>
+  </div>
+
+  <!-- ================== БАТЬКИ ================== -->
+  <div class="panel">
+    <div class="panel-title">Генотипи батьків</div>
+
+    <h3>Батько 1</h3>
+    <div class="form-row">
+      <select id="p1-g1-a1"></select>
+      <select id="p1-g1-a2"></select>
+      <select id="p1-g2-a1"></select>
+      <select id="p1-g2-a2"></select>
+    </div>
+
+    <h3>Батько 2</h3>
+    <div class="form-row">
+      <select id="p2-g1-a1"></select>
+      <select id="p2-g1-a2"></select>
+      <select id="p2-g2-a1"></select>
+      <select id="p2-g2-a2"></select>
+    </div>
+  </div>
+
+  <!-- ================== ЗАПУСК ================== -->
+  <div class="panel">
+    <div class="form-row">
+      <div>
+        <label>Кількість нащадків</label>
+        <input id="offspring" type="number" min="1" value="100">
+      </div>
+    </div>
+
+    <button id="run">Запустити симуляцію</button>
+  </div>
+
+  <!-- ================== РЕЗУЛЬТАТИ ================== -->
+  <div id="output"></div>
+
+</div>
+
+<script type="module" src="app.js"></script>
 </body>
 </html>
