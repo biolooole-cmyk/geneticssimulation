@@ -1,11 +1,16 @@
 /*************************************************
  * app.js
- * Еталонна логіка керування генетичною симуляцією
+ * Керування генетичною симуляцією
  * Ген → алелі → генотип → теорія → експеримент
  *************************************************/
 
 import { getTheoreticalDistribution } from "./genetics.js";
 import { simulate } from "./simulation.js";
+import {
+  clearCharts,
+  renderComparisonTable,
+  renderBarChart
+} from "./charts.js";
 
 /* =================================================
    1. DOM
@@ -13,12 +18,14 @@ import { simulate } from "./simulation.js";
 
 const modelRadios = document.querySelectorAll('input[name="model"]');
 
+// Ген 1
 const gene1 = {
   trait: document.getElementById("gene1-trait"),
   dom: document.getElementById("gene1-dom-symbol"),
   rec: document.getElementById("gene1-rec-symbol")
 };
 
+// Ген 2
 const gene2Block = document.getElementById("gene2-block");
 const gene2 = {
   trait: document.getElementById("gene2-trait"),
@@ -26,6 +33,7 @@ const gene2 = {
   rec: document.getElementById("gene2-rec-symbol")
 };
 
+// Батьки
 const parents = {
   p1: {
     g1: [
@@ -73,7 +81,7 @@ function attachEvents() {
     r.addEventListener("change", updateModel)
   );
 
-  // оновлення селектів одразу після зміни алелів
+  // оновлення селектів при зміні алелів
   [gene1.dom, gene1.rec, gene2.dom, gene2.rec].forEach(input => {
     input.addEventListener("input", updateParentSelectors);
   });
@@ -166,7 +174,7 @@ function updateParentSelectors() {
       );
     }
   } catch {
-    // мовчки — користувач ще вводить дані
+    // користувач ще вводить дані
   }
 }
 
@@ -174,17 +182,16 @@ function collectGenotype(parentKey, genes) {
   let genotype = "";
 
   genes.forEach(gene => {
-    const [a1, a2] = parents[parentKey][gene]
-      .map(sel => sel.value);
+    const [a1, a2] = parents[parentKey][gene.key].map(sel => sel.value);
 
     if (!a1 || !a2) {
       throw new Error("Не всі алелі обрані у батьків");
     }
 
-    // домінантний ПЕРШИЙ — за логікою гена
-    genotype += a1 === a2
-      ? a1 + a2
-      : (a1 === gene.dom ? a1 + a2 : a2 + a1);
+    genotype +=
+      a1 === a2
+        ? a1 + a2
+        : (a1 === gene.dom ? a1 + a2 : a2 + a1);
   });
 
   return genotype;
@@ -238,27 +245,19 @@ function runSimulation() {
    ================================================= */
 
 function renderResults(p1, p2, theory, exp, n) {
-  let html = `
+  clearCharts(output);
+
+  const info = document.createElement("div");
+  info.innerHTML = `
     <h3>Генотипи батьків</h3>
     <p>Батько 1: <strong>${p1}</strong></p>
     <p>Батько 2: <strong>${p2}</strong></p>
-
-    <h3>Теоретичний розподіл</h3>
-    <ul>
   `;
 
-  Object.entries(theory).forEach(([g, p]) => {
-    html += `<li>${g}: ${(p * 100).toFixed(1)}%</li>`;
-  });
+  output.appendChild(info);
 
-  html += `</ul><h3>Експеримент (${n} нащадків)</h3><ul>`;
-
-  Object.entries(exp).forEach(([g, c]) => {
-    html += `<li>${g}: ${c}</li>`;
-  });
-
-  html += "</ul>";
-
-  output.innerHTML = html;
+  renderComparisonTable(output, theory, exp, n);
+  renderBarChart(output, theory, exp, n);
 }
+
 
