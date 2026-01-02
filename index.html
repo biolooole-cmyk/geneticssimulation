@@ -1,135 +1,140 @@
 <!DOCTYPE html>
 <html lang="uk">
 <head>
-  <meta charset="UTF-8" />
-  <title>Генетична симуляція спадковості</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-
-  <link rel="stylesheet" href="style.css" />
+  <meta charset="UTF-8">
+  <title>Генетична симуляція (9 клас)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
 <div class="container">
 
-  <h1>Генетична симуляція спадковості</h1>
+  <h1>Генетична симуляція</h1>
+  <p>
+    Оберіть фенотипи батьків і дослідіть, як ознаки передаються нащадкам.
+  </p>
 
-  <!-- ================== ТИП СХРЕЩУВАННЯ ================== -->
+  <!-- ================= ТИП СХРЕЩУВАННЯ ================= -->
   <div class="panel">
     <div class="panel-title">Тип схрещування</div>
+    <label>
+      <input type="radio" name="model" value="mono" checked>
+      Моногібридне (1 ознака)
+    </label>
+    <label style="margin-left:20px;">
+      <input type="radio" name="model" value="di">
+      Дигібридне (2 ознаки)
+    </label>
+  </div>
+
+  <!-- ================= ОЗНАКА 1 ================= -->
+  <div class="panel">
+    <div class="panel-title">Ознака 1 — колір насіння</div>
+
     <div class="form-row">
-      <label>
-        <input type="radio" name="model" value="mono" checked>
-        Моногібридне
+      <strong>Батько 1:</strong>
+
+      <label class="phenotype">
+        <input type="radio" name="p1-g1" value="AA">
+        <span class="seed yellow"></span>
+        Жовте (AA)
       </label>
-      <label>
-        <input type="radio" name="model" value="di">
-        Дигібридне
+
+      <label class="phenotype">
+        <input type="radio" name="p1-g1" value="Aa">
+        <span class="seed hetero"></span>
+        Проміжне (Aa)
+      </label>
+
+      <label class="phenotype">
+        <input type="radio" name="p1-g1" value="aa">
+        <span class="seed green"></span>
+        Зелене (aa)
+      </label>
+    </div>
+
+    <div class="form-row">
+      <strong>Батько 2:</strong>
+
+      <label class="phenotype">
+        <input type="radio" name="p2-g1" value="AA">
+        <span class="seed yellow"></span>
+        Жовте (AA)
+      </label>
+
+      <label class="phenotype">
+        <input type="radio" name="p2-g1" value="Aa">
+        <span class="seed hetero"></span>
+        Проміжне (Aa)
+      </label>
+
+      <label class="phenotype">
+        <input type="radio" name="p2-g1" value="aa">
+        <span class="seed green"></span>
+        Зелене (aa)
       </label>
     </div>
   </div>
 
-  <!-- ================== ГЕН 1 ================== -->
+  <!-- ================= ОЗНАКА 2 ================= -->
+  <div class="panel" id="trait2" style="display:none;">
+    <div class="panel-title">Ознака 2 — форма насіння</div>
+
+    <div class="form-row">
+      <strong>Батько 1:</strong>
+
+      <label class="phenotype">
+        <input type="radio" name="p1-g2" value="BB">
+        <span class="shape round"></span>
+        Гладке (BB)
+      </label>
+
+      <label class="phenotype">
+        <input type="radio" name="p1-g2" value="Bb">
+        <span class="shape hetero-shape"></span>
+        Проміжна форма (Bb)
+      </label>
+
+      <label class="phenotype">
+        <input type="radio" name="p1-g2" value="bb">
+        <span class="shape wrinkled"></span>
+        Зморшкувате (bb)
+      </label>
+    </div>
+
+    <div class="form-row">
+      <strong>Батько 2:</strong>
+
+      <label class="phenotype">
+        <input type="radio" name="p2-g2" value="BB">
+        <span class="shape round"></span>
+        Гладке (BB)
+      </label>
+
+      <label class="phenotype">
+        <input type="radio" name="p2-g2" value="Bb">
+        <span class="shape hetero-shape"></span>
+        Проміжна форма (Bb)
+      </label>
+
+      <label class="phenotype">
+        <input type="radio" name="p2-g2" value="bb">
+        <span class="shape wrinkled"></span>
+        Зморшкувате (bb)
+      </label>
+    </div>
+  </div>
+
+  <!-- ================= ПАРАМЕТРИ ================= -->
   <div class="panel">
-    <div class="panel-title">Ген 1</div>
-
-    <div class="form-row">
-      <div>
-        <label>Ознака</label>
-        <input id="gene1-trait" type="text" placeholder="Колір насіння">
-      </div>
-    </div>
-
-    <div class="form-row">
-      <div>
-        <label>Домінантний алель</label>
-        <input id="gene1-dom-symbol" type="text" maxlength="1" placeholder="A">
-      </div>
-      <div>
-        <label>Опис домінантної ознаки</label>
-        <input id="gene1-dom-desc" type="text" placeholder="жовте">
-      </div>
-    </div>
-
-    <div class="form-row">
-      <div>
-        <label>Рецесивний алель</label>
-        <input id="gene1-rec-symbol" type="text" maxlength="1" placeholder="a">
-      </div>
-      <div>
-        <label>Опис рецесивної ознаки</label>
-        <input id="gene1-rec-desc" type="text" placeholder="зелене">
-      </div>
-    </div>
+    <label>Кількість нащадків:</label>
+    <input id="offspring" type="number" min="20" value="200">
+    <br><br>
+    <button id="run">Запустити схрещування</button>
   </div>
 
-  <!-- ================== ГЕН 2 ================== -->
-  <div class="panel" id="gene2-block" style="display:none;">
-    <div class="panel-title">Ген 2</div>
-
-    <div class="form-row">
-      <div>
-        <label>Ознака</label>
-        <input id="gene2-trait" type="text" placeholder="Форма насіння">
-      </div>
-    </div>
-
-    <div class="form-row">
-      <div>
-        <label>Домінантний алель</label>
-        <input id="gene2-dom-symbol" type="text" maxlength="1" placeholder="B">
-      </div>
-      <div>
-        <label>Опис домінантної ознаки</label>
-        <input id="gene2-dom-desc" type="text" placeholder="гладке">
-      </div>
-    </div>
-
-    <div class="form-row">
-      <div>
-        <label>Рецесивний алель</label>
-        <input id="gene2-rec-symbol" type="text" maxlength="1" placeholder="b">
-      </div>
-      <div>
-        <label>Опис рецесивної ознаки</label>
-        <input id="gene2-rec-desc" type="text" placeholder="зморшкувате">
-      </div>
-    </div>
-  </div>
-
-  <!-- ================== БАТЬКИ ================== -->
-  <div class="panel">
-    <div class="panel-title">Генотипи батьків</div>
-
-    <h3>Батько 1</h3>
-    <div class="form-row">
-      <select id="p1-g1-a1"></select>
-      <select id="p1-g1-a2"></select>
-      <select id="p1-g2-a1"></select>
-      <select id="p1-g2-a2"></select>
-    </div>
-
-    <h3>Батько 2</h3>
-    <div class="form-row">
-      <select id="p2-g1-a1"></select>
-      <select id="p2-g1-a2"></select>
-      <select id="p2-g2-a1"></select>
-      <select id="p2-g2-a2"></select>
-    </div>
-  </div>
-
-  <!-- ================== ЗАПУСК ================== -->
-  <div class="panel">
-    <div class="form-row">
-      <div>
-        <label>Кількість нащадків</label>
-        <input id="offspring" type="number" min="1" value="100">
-      </div>
-    </div>
-
-    <button id="run">Запустити симуляцію</button>
-  </div>
-
-  <!-- ================== РЕЗУЛЬТАТИ ================== -->
+  <!-- ================= РЕЗУЛЬТАТИ ================= -->
   <div id="output"></div>
 
 </div>
